@@ -4,7 +4,7 @@
 
 ## The filter
 
-A hosted analytics platform's API surface is that large because it is a multi-tenant SaaS with enterprise provisioning obligations, data residency law, partner integrations, and usually a separate experimentation product. A self-hosted single-tenant package inherits none of that. Cloning all 250 endpoints would be copying an org chart, not a product.
+A hosted analytics platform's API surface is that large because it is a multi-tenant SaaS with enterprise provisioning obligations, data residency law, partner integrations, and usually a separate experimentation product. A self-hosted single-tenant package inherits none of that. Cloning that whole surface would be copying an org chart, not a product.
 
 So every API gets one question:
 
