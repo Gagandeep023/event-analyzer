@@ -1,10 +1,40 @@
 /**
  * Express router and storage adapters.
  *
- * Owns validation, persistence and routing. Owns no policy about authentication
- * beyond an optional shared key, because that belongs to the host application.
+ * `express` is passed into the factory rather than imported, so installing this
+ * package for its analysis engine alone never pulls express into the graph.
  *
- * Implemented in phase 4. See docs/08-backend.md and docs/04-api-reference.md.
+ *   import express from 'express';
+ *   import { createEventAnalyzerRouter, JsonlFileStore }
+ *     from '@gagandeep023/event-analyzer/backend';
+ *
+ *   app.use('/api/events', createEventAnalyzerRouter(express, {
+ *     store: new JsonlFileStore({ dir: './data/events' }),
+ *     queryAuth: requireAdmin,
+ *   }));
  */
 
 export const BACKEND_VERSION = '0.1.0';
+
+export { createEventAnalyzerRouter, type ExpressLike } from './router';
+export {
+  validateBatch,
+  toRejectionMap,
+  normalizeAmplitudeEvent,
+  MAX_EVENT_TYPE_LENGTH,
+  MAX_STRING_LENGTH,
+  MAX_OBJECT_DEPTH,
+  MIN_EVENT_TIME,
+  MAX_CLOCK_SKEW_MS,
+  type ValidateOptions,
+} from './validate';
+export {
+  deriveMeta,
+  withinRange,
+  isAliasCapable,
+  type EventStore,
+  type StoreMeta,
+  type AliasCapableStore,
+} from './stores/EventStore';
+export { MemoryStore, type MemoryStoreOptions } from './stores/MemoryStore';
+export { JsonlFileStore, type JsonlFileStoreOptions } from './stores/JsonlFileStore';

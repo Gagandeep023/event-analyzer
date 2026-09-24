@@ -49,7 +49,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "demo": "tsx examples/server.ts"
   },
   "keywords": [
     "analytics",
@@ -113,6 +114,7 @@
     "recharts": "^3.7.0",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "vitest": "4.0.18"
+    "vitest": "4.0.18",
+    "tsx": "^4.21.0"
   }
 }
