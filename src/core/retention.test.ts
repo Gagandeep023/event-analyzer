@@ -48,7 +48,7 @@ describe('the three measures disagree on the same fixture', () => {
   });
 
   it('unbounded is never below n-day, and is strictly above it here', () => {
-    // Amplitude's own research: n-day understates returners by roughly 3.5x.
+    // n-day understates returners badly; see the fixture note above.
     const n = retained(run({ measure: 'n-day' }));
     const u = retained(run({ measure: 'unbounded' }));
     for (let i = 0; i < n.length; i++) expect(u[i]!).toBeGreaterThanOrEqual(n[i]!);

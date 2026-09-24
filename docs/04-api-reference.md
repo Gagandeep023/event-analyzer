@@ -141,15 +141,15 @@ Partial success is still success. A single malformed event never costs the calle
 | `429` | Rate limited | Back off 30s |
 | `500` | Store write failed | Retry with the same `insert_id` |
 
-### Amplitude compatibility mode
+### Flat payload compatibility mode
 
-When `amplitudeCompat: true` is set on the router, `/collect` additionally accepts Amplitude's own payload shape: `{ api_key, events, options }` with flat device and geo fields on each event. Incoming events are normalised into our shape (flat fields folded into `context`, revenue fields folded into `revenue`) before validation. This makes the package a drop-in for a codebase already sending to Amplitude.
+When `flatPayloadCompat: true` is set on the router, `/collect` additionally accepts the flat legacy payload shape: `{ api_key, events, options }` with flat device and geo fields on each event. Incoming events are normalised into our shape (flat fields folded into `context`, revenue fields folded into `revenue`) before validation. This makes the package a drop-in for a codebase already sending events in the flat shape.
 
 ---
 
 ## `POST /identify`
 
-Update user properties without emitting an event. Like Amplitude's Identify API, these calls do not count as events and have no effect on active-user counts.
+Update user properties without emitting an event. By convention these calls do not count as events and have no effect on active-user counts.
 
 ```json
 {
@@ -207,7 +207,7 @@ Applied in this order: `$clearAll`, `$unset`, `$setOnce`, `$set`, list operation
 }
 ```
 
-Supports `$set`, `$setOnce`, `$add`, `$append`, `$prepend`, `$unset`. Deliberately narrower than user properties, matching Amplitude.
+Supports `$set`, `$setOnce`, `$add`, `$append`, `$prepend`, `$unset`. Deliberately narrower than user properties, matching convention.
 
 Limits: 5 group types, 10 groups per event.
 
@@ -231,7 +231,7 @@ All query endpoints are `POST` with a JSON body. Funnel and retention specificat
 
 ## Shared request shapes
 
-Every query composes from the same primitives, a typed restatement of Amplitude's `e` / `s` / `g` triple.
+Every query composes from the same primitives, a typed restatement of the event / segment / group-by triple.
 
 ```ts
 interface TimeRange { from: number; to: number; }   // ms epoch, [from, to)
@@ -332,7 +332,7 @@ Groups are ranked by total and truncated to `limitGroups`, with the tail summed 
 
 ### Ordering modes
 
-Amplitude's vocabulary, kept verbatim. Note that `sequential` is **not** the intuitive plain in-order mode.
+The conventional vocabulary, kept verbatim. Note that `sequential` is **not** the intuitive plain in-order mode.
 
 | Mode | Meaning |
 |---|---|
@@ -342,7 +342,7 @@ Amplitude's vocabulary, kept verbatim. Note that `sequential` is **not** the int
 
 `conversionWindowMs` bounds the whole funnel, not each hop. Default 2,592,000,000 ms (30 days).
 
-`segment` applies to the **first step only**, matching Amplitude. This trips people up, so it is stated in the response metadata too.
+`segment` applies to the **first step only**, matching convention. This trips people up, so it is stated in the response metadata too.
 
 ### Response
 
@@ -402,7 +402,7 @@ For bracket retention, replace `periods` with `brackets`:
 | `unbounded` | They returned on day N **or any day after** | Irregular usage, most B2B |
 | `bracket` | They returned within `[lo, hi]` | Custom windows |
 
-Amplitude's own research found `n-day` understates returning users by roughly 3.5x against `unbounded`. Shipping only `n-day` is the most common way a retention implementation is quietly wrong.
+On this package's own demo dataset `n-day` reports roughly a third of what `unbounded` reports for the same users. Shipping only `n-day` is the most common way a retention implementation is quietly wrong.
 
 ### Response
 
@@ -433,7 +433,7 @@ Amplitude's own research found `n-day` understates returning users by roughly 3.
 
 A cohort is only eligible for period N if the range actually extends N periods past that cohort's start. Counting a cohort that started yesterday in the denominator of Day 30 retention drives the whole curve toward zero.
 
-Each curve point therefore carries **its own** `cohortSize`, computed from only those cohorts with a full N periods of observable data, and an `incomplete` flag. The renderer greys incomplete cells rather than the engine silently dropping them. Both the behaviour and the field name are taken from Amplitude.
+Each curve point therefore carries **its own** `cohortSize`, computed from only those cohorts with a full N periods of observable data, and an `incomplete` flag. The renderer greys incomplete cells rather than the engine silently dropping them. Flagging rather than dropping is the correct handling: only the renderer knows how to show uncertainty.
 
 Period 0 is always 1.0 by definition, since the start event is itself in the window, and is included so the curve has an anchor.
 
@@ -511,7 +511,7 @@ The user key list is returned so a cohort can be fed straight back into another 
 
 Sessions are **derived, never stored**. A session is the group of one user's events sharing a `session_id`. Where `session_id` is absent, as with a server-side SDK or a raw HTTP client, sessions are reconstructed by splitting each user's sorted event stream wherever the inter-event gap exceeds `sessionTimeoutMs`.
 
-Histogram bins are Amplitude's defaults, in milliseconds:
+Histogram bins are the conventional defaults, in milliseconds:
 
 ```
 [0,3k) [3k,10k) [10k,30k) [30k,60k) [60k,180k) [180k,600k) [600k,1.8M) [1.8M,3.6M) [3.6M,86.4M)

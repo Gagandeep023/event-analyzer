@@ -1,10 +1,10 @@
 # 02. Scope and mapping
 
-[Document 01](01-amplitude-api-atlas.md) catalogues roughly 250 Amplitude endpoints. This document decides which of them we build.
+[Document 01](01-prior-art.md) records the contracts worth adopting. This document decides how much surface to build around them.
 
 ## The filter
 
-Amplitude's surface is that large because Amplitude is a multi-tenant SaaS with enterprise provisioning obligations, data residency law, partner integrations, and a separate experimentation product. A self-hosted single-tenant package inherits none of that. Cloning all 250 endpoints would be copying an org chart, not a product.
+A hosted analytics platform's API surface is that large because it is a multi-tenant SaaS with enterprise provisioning obligations, data residency law, partner integrations, and usually a separate experimentation product. A self-hosted single-tenant package inherits none of that. Cloning all 250 endpoints would be copying an org chart, not a product.
 
 So every API gets one question:
 
@@ -18,7 +18,7 @@ Legend: **v0.1** ships first, **v0.2** and **v0.3** are scheduled, **skip** is a
 
 ### Ingestion
 
-| Amplitude API | Verdict | Our equivalent, or the reason not |
+| Reference capability | Verdict | Our equivalent, or the reason not |
 |---|---|---|
 | HTTP V2 | **v0.1** | `POST /collect`, same payload family, index-addressed errors |
 | Batch Event Upload | **v0.1** | Folded into `/collect`. Two endpoints differing only in throttle policy is a SaaS billing artifact. |
@@ -30,7 +30,7 @@ Legend: **v0.1** ships first, **v0.2** and **v0.3** are scheduled, **skip** is a
 
 ### Query
 
-| Amplitude API | Verdict | Our equivalent, or the reason not |
+| Reference capability | Verdict | Our equivalent, or the reason not |
 |---|---|---|
 | Dashboard REST: `events/segmentation` | **v0.1** | `POST /query/segmentation` |
 | Dashboard REST: `funnels` | **v0.1** | `POST /query/funnel`, all three modes |
@@ -46,7 +46,7 @@ Legend: **v0.1** ships first, **v0.2** and **v0.3** are scheduled, **skip** is a
 
 ### Audiences, governance, privacy
 
-| Amplitude API | Verdict | Our equivalent, or the reason not |
+| Reference capability | Verdict | Our equivalent, or the reason not |
 |---|---|---|
 | Behavioral Cohorts | **v0.2** | `core/cohort.ts` exists in v0.1. Saved-cohort CRUD and reuse-as-segment lands in v0.2. |
 | Chart Annotations + Releases | **v0.2** | Merged into one `/annotations` resource. Two APIs for "draw a line on a chart" is not a distinction worth keeping. |
@@ -58,17 +58,17 @@ Legend: **v0.1** ships first, **v0.2** and **v0.3** are scheduled, **skip** is a
 
 ### Platform
 
-| Amplitude API | Verdict | Reason |
+| Reference capability | Verdict | Reason |
 |---|---|---|
 | Session Replay | **skip** | DOM recording, storage and playback is a larger engineering project than this entire package. |
-| Event Streaming Metrics | **skip** | Observability for Amplitude's own outbound connectors. |
+| Event Streaming Metrics | **skip** | Observability for a vendor's own outbound connectors. |
 | SCIM, User Management, Audit Logs | **skip** | Multi-tenant identity and RBAC. The host application already owns auth; we take a middleware and get out of the way. |
 | Experiment (evaluation + management) | **skip** | Feature flagging is a separate product on a separate host and should stay a separate package. |
 | Developer API | **skip** | OAuth device flow for third-party app authorization against a SaaS. |
 
 ## The shape that falls out
 
-Eleven endpoints in v0.1, against Amplitude's roughly forty covering the same functional ground. The reduction is not aggressive. It comes almost entirely from three sources.
+Eleven endpoints in v0.1, against roughly forty in a hosted platform covering the same functional ground. The reduction is not aggressive. It comes almost entirely from three sources.
 
 **1. Endpoints that differ only by quota.** HTTP V2 and Batch take the same payload and differ only in throttling. Segmentation, composition and active-user counts are the same computation with different defaults. Three session endpoints are three views of one derivation.
 
@@ -78,11 +78,11 @@ Eleven endpoints in v0.1, against Amplitude's roughly forty covering the same fu
 
 ## Design principles carried over
 
-These are the ideas from Amplitude worth keeping, and they constrain every later document.
+These are the ideas from prior art worth keeping, and they constrain every later document.
 
 1. **One event shape everywhere.** Ingest, store and export all speak the same object. No internal representation that differs from the wire format, so an exported file replays straight back into `/collect`.
 
-2. **Composable query primitives.** Amplitude's `e` / `s` / `g` triple, restated as typed `StepSpec` / `Filter[]` / `PropertyRef`. Learn it once, use it across all five analyses.
+2. **Composable query primitives.** The event / segment / group-by triple, restated as typed `StepSpec` / `Filter[]` / `PropertyRef`. Learn it once, use it across all five analyses.
 
 3. **Idempotency at the edge.** `insert_id` stamped on entry makes every retry safe and dedup trivial.
 
@@ -96,7 +96,7 @@ These are the ideas from Amplitude worth keeping, and they constrain every later
 
 ## Things we deliberately do differently
 
-| Amplitude | Us | Why |
+| Convention | This package | Why |
 |---|---|---|
 | Autocapture partly on by default | Everything off by default | Capturing tracking a developer did not ask for is how people ship surprise data collection. For a self-hosted tool the honest default is nothing. |
 | Query parameters in the URL query string | JSON request bodies on `POST` | Funnel specs are nested objects with step filters and exclusions. Flattening them into a query string is lossy and unreadable. |

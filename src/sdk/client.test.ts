@@ -231,7 +231,7 @@ describe('plugins and configuration', () => {
   });
 
   it('defaults every autocapture mode off', () => {
-    // Amplitude defaults several on, which is how people ship tracking they did
+    // Many tools default several on, which is how people ship tracking they did
     // not know about. The honest default for a self-hosted tool is nothing.
     expect(make().client.getConfig().autocapture).toEqual({});
   });

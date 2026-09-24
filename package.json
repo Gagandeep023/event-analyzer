@@ -1,7 +1,7 @@
 {
   "name": "@gagandeep023/event-analyzer",
-  "version": "0.1.2",
-  "description": "Self-hosted product analytics: event capture SDK, Express ingestion, zero-dependency funnel/retention/cohort engine, and a React dashboard",
+  "version": "0.2.0",
+  "description": "Self-hosted product analytics: event capture SDK, Express collector, zero-dependency funnel/retention/cohort engine, and a React dashboard",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -61,7 +61,6 @@
     "retention",
     "cohort",
     "self-hosted",
-    "amplitude",
     "express",
     "react",
     "typescript",

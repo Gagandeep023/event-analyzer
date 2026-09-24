@@ -57,7 +57,7 @@ export interface PageViewAutocaptureOptions {
 /**
  * Autocapture. Everything defaults to false.
  *
- * Amplitude defaults several of these on, which is convenient and also how people
+ * Many tools default several of these on, which is convenient and also how people
  * ship tracking they did not know about. For a self-hosted tool the honest
  * default is to capture nothing until asked.
  */
@@ -77,7 +77,7 @@ export interface SdkConfig {
   deviceId?: string;
   sessionId?: number;
 
-  /** Default 5000. Amplitude uses 1000; a self-hosted collector is not billing per request. */
+  /** Default 5000. Hosted tools use 1000; a self-hosted collector is not billing per request. */
   flushIntervalMillis?: number;
   /** Default 30. Flush immediately at this queue depth. */
   flushQueueSize?: number;
@@ -213,8 +213,8 @@ export interface BackendConfig {
   maxStreamConnections?: number;
   /** Default 5. */
   minIdLength?: number;
-  /** Accept Amplitude's own payload shape on `/collect`. Default false. */
-  amplitudeCompat?: boolean;
+  /** Accept the flat legacy payload shape on `/collect`. Default false. */
+  flatPayloadCompat?: boolean;
   logger?: Logger;
 }
 
@@ -225,7 +225,7 @@ export const BACKEND_DEFAULTS = Object.freeze({
   maxBodyBytes: 5_000_000,
   maxStreamConnections: 50,
   minIdLength: 5,
-  amplitudeCompat: false,
+  flatPayloadCompat: false,
   /** How many recent insert ids to remember for deduplication. */
   dedupeWindow: 10_000,
   /** SSE keepalive interval, in ms. */

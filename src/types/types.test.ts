@@ -43,7 +43,7 @@ describe('identify operations', () => {
   });
 
   it('group operations are a strict subset of user operations', () => {
-    // Amplitude supports a narrower set on groups: no preInsert/postInsert/remove/clearAll.
+    // Groups take a narrower set: no preInsert/postInsert/remove/clearAll.
     for (const op of GROUP_IDENTIFY_OPERATIONS) {
       expect(IDENTIFY_OPERATIONS).toContain(op);
     }
@@ -74,8 +74,8 @@ describe('filter tables', () => {
 });
 
 describe('query tables', () => {
-  it('uses Amplitude funnel mode vocabulary verbatim', () => {
-    // Migrated queries carry Amplitude's meaning, so the words must match exactly.
+  it('uses the conventional funnel mode vocabulary verbatim', () => {
+    // Migrated queries carry the established meaning, so the words must match.
     expect([...FUNNEL_ORDERS].sort()).toEqual(['ordered', 'sequential', 'unordered']);
   });
 
@@ -119,8 +119,8 @@ describe('session bin edges', () => {
 });
 
 describe('defaults', () => {
-  it('flushes less eagerly than Amplitude', () => {
-    // Amplitude uses 1000ms. A self-hosted collector is not billing per request.
+  it('flushes less eagerly than hosted tools do', () => {
+    // Hosted tools use 1000ms. A self-hosted collector is not billing per request.
     expect(SDK_DEFAULTS.flushIntervalMillis).toBe(5_000);
     expect(SDK_DEFAULTS.sessionTimeoutMs).toBe(30 * 60 * 1000);
     expect(SDK_DEFAULTS.minIdLength).toBe(5);
@@ -134,7 +134,7 @@ describe('defaults', () => {
   it('defaults autocapture and regex filters off', () => {
     expect(SDK_DEFAULTS.optOut).toBe(false);
     expect(BACKEND_DEFAULTS.allowRegexFilters).toBe(false);
-    expect(BACKEND_DEFAULTS.amplitudeCompat).toBe(false);
+    expect(BACKEND_DEFAULTS.flatPayloadCompat).toBe(false);
   });
 
   it('agrees on minIdLength across sdk and backend', () => {

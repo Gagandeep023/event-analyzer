@@ -122,7 +122,7 @@ export function funnel(events: AnalyticsEvent[], q: FunnelQuery, ids?: IdentityG
 
 2. **`ordered`**: scan forward for step 1, then step 2, each after the previous match and before the deadline. Unrelated events between steps are allowed.
 
-3. **`sequential`**: same scan, but the very next event after each match must be the next step. Any other event between two steps fails the attempt. This is Amplitude's meaning of the word, not the intuitive one.
+3. **`sequential`**: same scan, but the very next event after each match must be the next step. Any other event between two steps fails the attempt. This is the established meaning of the word, not the intuitive one.
 
 4. **`unordered`**: require that every step has at least one match within the window, in any order. Depth reached is the number of distinct steps matched.
 
@@ -158,7 +158,7 @@ From there the three measures differ only in how that set is read.
 | `unbounded` | The return set contains any value `>= N` | Irregular usage, most B2B |
 | `bracket` | The return set intersects `[lo, hi]` for that bracket | Custom windows |
 
-Amplitude's own research found `n-day` understates returning users by roughly 3.5x against `unbounded`. Most reimplementations ship only `n-day` and are quietly wrong.
+On this package's own demo dataset `n-day` reports roughly a third of what `unbounded` reports for the same users. Most reimplementations ship only `n-day` and are quietly wrong.
 
 ### The correctness trap
 
@@ -166,7 +166,7 @@ A cohort is only eligible for period N if the range actually extends N periods p
 
 Each curve point therefore uses **its own denominator**: only cohorts with a full N periods of observable data. `cohortSize` is reported per point, not once, and each cell carries an `incomplete` flag so the dashboard can grey out the under-observed tail rather than drawing a cliff that is an artifact of the query window.
 
-Both the behaviour and the field name are taken from Amplitude, which gets this right.
+Flagging rather than dropping is the correct handling: only the renderer knows how to show uncertainty.
 
 Period 0 is always 1.0 by definition, since the start event is itself in the window, and is included so the curve has an anchor.
 
@@ -216,7 +216,7 @@ Start and end session markers are never emitted as events, so they cost nothing 
 
 `stickiness` computes DAU, WAU and MAU as distinct resolved users in trailing 1, 7 and 30 day windows ending at `range.to`, plus the DAU/MAU and DAU/WAU ratios.
 
-Duration histogram bins are Amplitude's defaults, in milliseconds:
+Duration histogram bins are the conventional defaults, in milliseconds:
 
 ```
 [0,3k) [3k,10k) [10k,30k) [30k,60k) [60k,180k) [180k,600k) [600k,1.8M) [1.8M,3.6M) [3.6M,86.4M)

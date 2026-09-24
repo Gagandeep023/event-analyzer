@@ -1,74 +1,230 @@
-# @gagandeep023/event-analyzer
+<h1 align="center">Event Analyzer</h1>
 
-Self-hosted product analytics as an npm package. Event capture SDK, Express ingestion, a zero-dependency analysis engine that computes funnels, retention and cohorts, and a React dashboard.
+<p align="center">
+  <strong>Self-hosted product analytics you install with npm.</strong><br>
+  Funnels, retention and cohorts on your own server. Zero runtime dependencies.
+</p>
 
-Modelled on Amplitude's documented semantics, built from scratch, with no runtime dependencies.
+<p align="center">
+  <a href="https://www.npmjs.com/package/@gagandeep023/event-analyzer"><img alt="npm" src="https://img.shields.io/npm/v/@gagandeep023/event-analyzer?color=64ffda&label=npm"></a>
+  <img alt="dependencies" src="https://img.shields.io/badge/runtime%20deps-0-64ffda">
+  <img alt="tests" src="https://img.shields.io/badge/tests-376-64ffda">
+  <img alt="types" src="https://img.shields.io/badge/types-included-64ffda">
+  <img alt="license" src="https://img.shields.io/badge/license-MIT-64ffda">
+</p>
 
-> **Status: v0.1.0 built, not yet published.** All five phases complete: 376 tests green, six entry points building, runnable demo. See [`GUIDE.md`](GUIDE.md) for usage and [`docs/`](docs/) for the design.
+<p align="center">
+  <a href="https://analytics.gagandeep023.com"><strong>Live demo and guide →</strong></a>
+</p>
+
+---
+
+```bash
+npm i @gagandeep023/event-analyzer
+```
+
+Nothing else is installed. `express`, `react`, `react-dom` and `recharts` are
+**optional** peers, so pulling this in for the analysis engine alone adds exactly
+one package to your tree.
+
+---
+
+## Why this exists
+
+Hosted analytics gives you good tooling and takes your users' behaviour off your
+server in exchange. This gives you the tooling and keeps the data on disk.
+
+| | |
+|---|---|
+| **The data stays yours** | Events land as JSONL on your own disk. Nothing is sent anywhere else. |
+| **No consent banner** | No third-party cookies, no cross-site tracking, nothing to disclose. |
+| **Nothing to outgrow** | Storage is an interface. Start on a file, move to SQLite or Postgres without touching the router. |
+| **Correct, not just present** | All three retention measures, incomplete cohorts flagged, partial batch acceptance. Details below. |
+
+---
+
+## Four pieces, use any of them
+
+```
+  ./sdk        capture      browser + node, batching, retry, offline queue
+  ./backend    collect      express router, validation, pluggable storage
+  ./core       analyse      pure functions: funnel, retention, cohort, sessions
+  ./frontend   render       react dashboard, six panels
+```
+
+### Capture
+
+```ts
+import { createClient, Identify, Revenue } from '@gagandeep023/event-analyzer/sdk';
+
+const ea = createClient({
+  endpoint: '/api/events/collect',
+  apiKey: import.meta.env.VITE_EA_WRITE_KEY,
+  autocapture: { pageViews: true, sessions: true },
+});
+
+ea.track('Checkout Started', { cart_value: 4200, items: 3 });
+ea.identify(new Identify().set('plan', 'pro').add('logins', 1));
+ea.revenue(new Revenue().setPrice(29).setProductId('pro_monthly'));
+```
+
+Fire-and-forget by default; the promise is there when you need it.
+
+```ts
+const { code } = await ea.track('Signup Completed').promise;
+```
+
+### Collect
+
+```ts
+import express from 'express';
+import { createEventAnalyzerRouter, JsonlFileStore }
+  from '@gagandeep023/event-analyzer/backend';
+
+app.use('/api/events', createEventAnalyzerRouter(express, {
+  store: new JsonlFileStore({ dir: './data/events' }),
+  apiKeys: [process.env.EA_WRITE_KEY],   // public: guards /collect
+  queryAuth: requireOwner,               // yours:  guards /query and /stream
+}));
+```
+
+`express` is **passed in, not imported**. That is what keeps it an optional peer:
+installing this package for `core` alone never pulls express into your graph.
+
+### Analyse
+
+`core` is pure. Events in, results out, no I/O. Useful on its own against an
+array from any database, with no server involved.
+
+```ts
+import { funnel, retention, buildIdentityGraph } from '@gagandeep023/event-analyzer/core';
+
+const ids = buildIdentityGraph(events);   // build once, pass into every analysis
+
+funnel(events, {
+  steps: [{ event_type: 'Signed Up' }, { event_type: 'Plan Upgraded' }],
+  order: 'ordered',
+  conversionWindowMs: 30 * 86_400_000,
+  countBy: 'uniques',
+  range: { from, to },
+}, ids);
+```
+
+### Render
+
+```tsx
+import { EventAnalyzerDashboard } from '@gagandeep023/event-analyzer/frontend';
+import '@gagandeep023/event-analyzer/frontend/styles.css';
+
+<EventAnalyzerDashboard baseUrl="/api/events" fetcher={authedFetch} />
+```
+
+---
+
+## Three things most reimplementations get wrong
+
+**1. Retention is three different questions.**
+
+| Measure | Retained in period N when | Good for |
+|---|---|---|
+| `n-day` | Returned on **exactly** day N | Daily habit loops |
+| `unbounded` | Returned on day N **or any day after** | Irregular use, most B2B |
+| `bracket` | Returned within a custom `[lo, hi]` | Onboarding windows |
+
+They disagree enormously. On this package's own demo data, `n-day` reports about
+**a third** of what `unbounded` reports for the same users. Ship only `n-day` and
+a healthy weekly-rhythm product looks like it is bleeding users.
+
+**2. A young cohort cannot be measured at Day 30.**
+
+It has not had thirty days to return. Count it in the denominator anyway and your
+curve dives at the right-hand edge, which is an artifact of your date range, not a
+fact about your product.
+
+Every curve point here carries **its own** `cohortSize`, computed from only the
+cohorts with a full N periods of observable data, plus an `incomplete` flag so the
+renderer can show uncertainty instead of the engine hiding it.
+
+**3. One bad event should cost you one event.**
+
+`/collect` accepts partially. The response names failures **by array index**, so
+the client drops exactly the poison and retries the rest:
+
+```json
+{ "code": 200, "events_ingested": 497, "events_rejected": 3,
+  "rejected": { "events_with_missing_fields": { "event_type": [12] } } }
+```
+
+A batch rejected purely as duplicates returns `200`, not an error. That is the
+retry-after-timeout case `insert_id` exists for, and reporting failure there tells
+the caller its retry failed when the data actually arrived.
+
+---
+
+## Funnel modes: read this once
+
+```
+ordered      steps in order, other events allowed between   ← the intuitive one
+unordered    all steps, any order
+sequential   steps in order, NO other event between them    ← stricter than it sounds
+```
+
+`sequential` is **not** the plain in-order mode. `ordered` is. These names are the
+established convention and are kept verbatim, because a same-word-different-meaning
+collision is worse than an awkward word.
+
+The conversion window bounds the **whole funnel**, not each hop. The segment filter
+applies to the **first step only**.
+
+---
+
+## Security: two trust levels
+
+`/collect`, `/identify`, `/group-identify` and `/alias` are **public by nature**.
+Anything running the SDK must reach them, so the write key ships in your client
+bundle and is not a secret.
+
+`/query/*`, `/meta`, `/export` and `/stream` expose **every event in the store**
+and need real authentication via `queryAuth`. The router warns at startup when it
+is missing, but it cannot supply one for you.
+
+Other defaults chosen on the cautious side:
+
+- **Autocapture is entirely off.** Capturing tracking you did not ask for is how
+  people ship surprise data collection.
+- **Regex filters are refused** unless enabled. Untrusted regex compiled from a
+  request body is a denial-of-service vector.
+- **Click capture never reads input values** and never touches a password field.
+
+---
+
+## Documentation
+
+| | |
+|---|---|
+| [**GUIDE.md**](GUIDE.md) | Usage: capture, serve, analyse, render. Ships in the tarball. |
+| [docs/](docs/) | Design: 12 documents covering architecture, API, algorithms, tests, risks |
+| [Live guide](https://analytics.gagandeep023.com) | The same material, rendered, with a working dashboard behind it |
+
+---
+
+## Try it
 
 ```bash
 git clone https://github.com/Gagandeep023/event-analyzer.git
-cd event-analyzer && npm i && npm run demo
+cd event-analyzer && npm i
+npm run demo     # seeds 90 days of data, prints a curl for every endpoint
 ```
 
-## What it will do
+---
 
-```ts
-// Capture
-import { createClient } from '@gagandeep023/event-analyzer/sdk';
-const ea = createClient({ endpoint: '/api/events/collect' });
-ea.track('Checkout Started', { cart_value: 4200 });
+## Known limits
 
-// Serve
-import { createEventAnalyzerRouter, JsonlFileStore } from '@gagandeep023/event-analyzer/backend';
-app.use('/api/events', createEventAnalyzerRouter({
-  store: new JsonlFileStore({ dir: './data/events' }),
-  queryAuth: requireAdmin,
-}));
-
-// Analyse, with no server at all
-import { funnel, retention } from '@gagandeep023/event-analyzer/core';
-const result = retention(myEvents, { measure: 'unbounded', interval: 'day', periods: 30, /* ... */ });
-
-// Render
-import { EventAnalyzerDashboard } from '@gagandeep023/event-analyzer/frontend';
-<EventAnalyzerDashboard baseUrl="/api/events" />
-```
-
-## Design documentation
-
-| # | Document | Covers |
-|---|---|---|
-| 01 | [Amplitude API atlas](docs/01-amplitude-api-atlas.md) | Every Amplitude API, catalogued from their full docs corpus |
-| 02 | [Scope and mapping](docs/02-scope-and-mapping.md) | What we build, what we skip, and why |
-| 03 | [Architecture](docs/03-architecture.md) | Modules, dependency direction, package configuration |
-| 04 | [API reference](docs/04-api-reference.md) | Our HTTP surface, in full |
-| 05 | [Type contract](docs/05-types.md) | Shared types every module agrees on |
-| 06 | [Core engine](docs/06-core-engine.md) | The analysis algorithms |
-| 07 | [Capture SDK](docs/07-sdk.md) | Client API, plugin pipeline, delivery |
-| 08 | [Backend](docs/08-backend.md) | Router, validation, storage |
-| 09 | [Frontend](docs/09-frontend.md) | Dashboard and panels |
-| 10 | [Build plan](docs/10-build-plan.md) | Five phases with done criteria |
-| 11 | [Test plan](docs/11-test-plan.md) | ~130 specs and two invariants |
-| 12 | [Risks and open questions](docs/12-risks.md) | Known weaknesses, decisions outstanding |
-
-Usage documentation lives in [`GUIDE.md`](GUIDE.md), which ships in the published tarball.
-
-## Design in one paragraph
-
-Amplitude publishes roughly 250 API endpoints across seven hosts. Most of that surface exists because Amplitude is a multi-tenant SaaS with enterprise provisioning, data residency law and a separate experimentation product. The filter applied here is one question: does this exist because analytics is hard, or because selling analytics to enterprises is hard? The first kind we build; the second kind we skip and say so. That reduces to eleven endpoints in v0.1 covering the same functional ground as about forty of theirs.
-
-## Three things it gets right that most clones get wrong
-
-**All three retention measures.** `n-day`, `unbounded` and `bracket`. Amplitude's own research found `n-day` understates returning users by roughly 3.5x against `unbounded`. Shipping only `n-day` is the usual way a retention implementation is quietly wrong.
-
-**Incomplete cohorts are flagged, not hidden.** A cohort that started yesterday cannot fairly be measured at Day 30. Every retention cell carries an `incomplete` flag and every curve point carries its own denominator, so the tail is greyed rather than drawn as a cliff that is an artifact of the query window.
-
-**Partial batch acceptance.** One malformed event in a batch of five hundred costs you one event. The `400` body addresses failures by event index, so the client drops only the poison and retries the rest.
-
-## Security note
-
-`/collect` is public by nature; anything running the SDK must reach it. `/query/*`, `/meta`, `/export` and `/stream` expose **every event in the store** and must be guarded by real authentication via the `queryAuth` option. The router warns at startup when it is missing, but it cannot supply one for you.
+- `JsonlFileStore` scans the files overlapping a range per query. Comfortable to a
+  few million events; a SQLite store is the v0.2 answer.
+- A fixed `tzOffsetMin` cannot express a DST transition mid-range.
+- `/export` materialises the range before streaming, so keep export windows bounded.
+- Journey paths, taxonomy validation and lookup tables are not in v0.1.
 
 ## License
 

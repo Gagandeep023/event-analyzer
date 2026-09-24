@@ -1,7 +1,7 @@
 /**
  * The event wire format.
  *
- * A trimmed version of Amplitude's HTTP V2 event. Amplitude flattens roughly
+ * A trimmed version of the conventional analytics event. Most tools flatten roughly
  * twenty device and geo fields onto the event root; we group them into a single
  * `context` object, which keeps the type readable and the ingest validator simple.
  *
@@ -86,7 +86,7 @@ export const IDENTIFY_MERGE_ORDER: readonly IdentifyOperation[] = Object.freeze(
  * bare property names, which are treated as `$set`.
  *
  * `$clearAll` is the exception: it carries a sentinel value rather than a map,
- * because it takes no per-property argument. Amplitude conventionally sends
+ * because it takes no per-property argument. The convention is to send
  * `"-"`. The value is ignored; only the key's presence matters.
  */
 export type UserProperties = {
@@ -103,7 +103,7 @@ export type UserProperties = {
 /** Group properties support a narrower operation set than user properties. */
 export type GroupProperties = UserProperties;
 
-/** Operations valid on group properties, matching Amplitude's narrower set. */
+/** Operations valid on group properties. Deliberately narrower than user properties. */
 export const GROUP_IDENTIFY_OPERATIONS: readonly IdentifyOperation[] = Object.freeze([
   IdentifyOperation.SET,
   IdentifyOperation.SET_ONCE,

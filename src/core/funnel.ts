@@ -1,7 +1,8 @@
 /**
  * Funnel conversion and drop-off.
  *
- * Three ordering modes, using Amplitude's vocabulary verbatim so a migrated
+ * Three ordering modes, using the vocabulary established by product analytics
+ * tools, so a migrated
  * query keeps its meaning:
  *
  *   ordered    steps in the given order, other events permitted between them
@@ -174,7 +175,7 @@ function walkUser(
 
   for (let i = 0; i < userEvents.length; i++) {
     const ev = userEvents[i]!;
-    // The segment applies to the FIRST step only, matching Amplitude.
+    // The segment applies to the FIRST step only, matching convention.
     if (matchesStep(ev, first, opts) && matchesAll(ev, q.segment, opts)) {
       starts.push(i);
       if (starts.length >= MAX_FUNNEL_ATTEMPTS) break;

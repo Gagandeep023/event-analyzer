@@ -178,7 +178,7 @@ describe('sessionStats', () => {
 
   it('bins durations non-linearly, so bounces separate from real sessions', () => {
     const bins = stats().durationHistogram;
-    // Amplitude's first bin is [0, 3s): the 0ms and 2s sessions land there.
+    // The first bin is [0, 3s): the 0ms and 2s sessions land there.
     expect(bins[0]!.count).toBe(2);
     // 10 minutes is exactly 600_000ms, the lower edge of the next bin, so the
     // half-open range puts it in [600s, 1800s) rather than [180s, 600s).

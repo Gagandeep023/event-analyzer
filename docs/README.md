@@ -6,7 +6,7 @@ Read in order. Documents 01 and 02 establish what exists and what we are choosin
 
 | # | Document | What it covers |
 |---|---|---|
-| 01 | [Amplitude API atlas](01-amplitude-api-atlas.md) | Every Amplitude API, catalogued from their full docs corpus. 89 references, ~250 endpoints. |
+| 01 | [Prior art](01-prior-art.md) | The contracts this package adopts from established product analytics tools, and why. |
 | 02 | [Scope and mapping](02-scope-and-mapping.md) | Which of those we build, which we skip, and the filter used to decide. |
 | 03 | [Architecture](03-architecture.md) | Module layout, dependency direction, package configuration. |
 | 04 | [API reference](04-api-reference.md) | Our HTTP surface. Every endpoint, request and response, in full. |
@@ -21,9 +21,9 @@ Read in order. Documents 01 and 02 establish what exists and what we are choosin
 
 ## Source material
 
-The Amplitude research in document 01 was taken from `https://amplitude.com/docs/llms-full.txt`, their complete documentation corpus, retrieved 2026-09-24. That file contains 725 pages, of which 89 are API references. Where this documentation quotes a limit, a default or a field name, it comes from that corpus rather than from recollection.
-
-The SDK architecture notes in documents 06 and 07 were taken from reading `github.com/amplitude/Amplitude-TypeScript` at `main`, which is the open-source reference implementation of their client. Their analysis engine is not open source, so documents 04 and 06 reimplement it from documented semantics.
+Document 01 records the contracts this package adopts from the established
+product analytics tools, and the reasoning behind each. Every algorithm in
+`core` is implemented from those documented semantics; nothing is copied.
 
 ## Status
 

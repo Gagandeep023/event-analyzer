@@ -30,7 +30,7 @@ export interface AliasPayload {
 /**
  * Why an event was rejected, addressed by its index in the submitted batch.
  *
- * This is the most valuable design detail carried over from Amplitude: it lets a
+ * This is the most valuable detail in the whole ingest contract: it lets a
  * client drop only the poison events and retry the rest, instead of losing the
  * whole batch to one bad record.
  */

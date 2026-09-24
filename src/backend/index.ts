@@ -20,7 +20,7 @@ export { createEventAnalyzerRouter, type ExpressLike } from './router';
 export {
   validateBatch,
   toRejectionMap,
-  normalizeAmplitudeEvent,
+  normalizeFlatEvent,
   MAX_EVENT_TYPE_LENGTH,
   MAX_STRING_LENGTH,
   MAX_OBJECT_DEPTH,

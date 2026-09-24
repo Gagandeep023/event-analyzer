@@ -1,7 +1,7 @@
 /**
  * Event counts over time, optionally grouped and segmented.
  *
- * The workhorse chart. Also covers what Amplitude splits into separate
+ * The workhorse chart. Also covers what other tools split into separate
  * `users` and `composition` endpoints, which are the same computation with
  * different defaults.
  */

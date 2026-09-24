@@ -1,7 +1,8 @@
 /**
  * Query primitives shared by every analysis.
  *
- * A typed restatement of Amplitude's `e` / `s` / `g` triple: a step is an event
+ * A typed restatement of the event / segment / group-by triple common to product
+ * analytics query APIs: a step is an event
  * with optional property filters, a segment is a list of filters, and a group-by
  * is a property reference. Learn it once, use it across all five analyses.
  */

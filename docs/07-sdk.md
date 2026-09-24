@@ -86,7 +86,7 @@ Events pass through `before[]` in registration order, then `enrichment[]`, then 
 
 Returning `null` at any stage drops the event and resolves its promise with a synthetic result, so a caller awaiting a dropped event never hangs. That detail is easy to miss and produces a hang that is very hard to debug.
 
-**Name locking.** Registration locks the plugin name **synchronously** before awaiting `setup()`. Without that lock, two concurrent `add()` calls with the same name both pass the existence check and install twice, and the event gets enriched twice. This is the one piece of Amplitude's implementation worth copying verbatim.
+**Name locking.** Registration locks the plugin name **synchronously** before awaiting `setup()`. Without that lock, two concurrent `add()` calls with the same name both pass the existence check and install twice, and the event gets enriched twice. This is the one piece of client-side prior art worth copying verbatim.
 
 **Built-in plugins** registered by `createClient`: an `optOut` before-plugin, a `context` enrichment plugin, a `session` enrichment plugin, and the `Destination`.
 
@@ -164,7 +164,7 @@ createClient({
 });
 ```
 
-Amplitude defaults several of these on, which is convenient and also how people end up shipping tracking they did not know about. For a self-hosted tool the honest default is to capture nothing until asked.
+Many tools default several of these on, which is convenient and also how people end up shipping tracking they did not know about. For a self-hosted tool the honest default is to capture nothing until asked.
 
 `clicks` records tag name, the allowlisted selector that matched, text content truncated to 128 characters, and any `data-ea-*` attributes. It **never** records input values and **never** reads anything inside a `password` field.
 

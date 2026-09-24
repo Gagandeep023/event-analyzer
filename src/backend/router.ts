@@ -26,7 +26,7 @@ import {
   segmentation,
   sessionStats,
 } from '../core';
-import { normalizeAmplitudeEvent, toRejectionMap, validateBatch } from './validate';
+import { normalizeFlatEvent, toRejectionMap, validateBatch } from './validate';
 import { isAliasCapable } from './stores/EventStore';
 
 /** Minimal shapes, so `express` stays an optional peer dependency. */
@@ -79,7 +79,7 @@ function resolve(config: BackendConfig) {
     maxBodyBytes: config.maxBodyBytes ?? BACKEND_DEFAULTS.maxBodyBytes,
     maxStreamConnections: config.maxStreamConnections ?? BACKEND_DEFAULTS.maxStreamConnections,
     minIdLength: config.minIdLength ?? BACKEND_DEFAULTS.minIdLength,
-    amplitudeCompat: config.amplitudeCompat ?? BACKEND_DEFAULTS.amplitudeCompat,
+    flatPayloadCompat: config.flatPayloadCompat ?? BACKEND_DEFAULTS.flatPayloadCompat,
     logger: config.logger ?? noopLogger,
   };
 }
@@ -151,8 +151,8 @@ export function createEventAnalyzerRouter<R>(express: ExpressLike<R>, config: Ba
       return;
     }
 
-    const candidates = cfg.amplitudeCompat
-      ? raw.map((r) => normalizeAmplitudeEvent(r as Record<string, unknown>))
+    const candidates = cfg.flatPayloadCompat
+      ? raw.map((r) => normalizeFlatEvent(r as Record<string, unknown>))
       : raw;
 
     const { accepted, issues } = validateBatch(candidates, {

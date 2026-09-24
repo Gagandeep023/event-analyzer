@@ -38,11 +38,11 @@ Click capture that reads text content will eventually read something private.
 
 Everything defaults off, input values are never captured, password fields are excluded unconditionally, and text is truncated to 128 characters.
 
-The honest framing is that autocapture is a convenience with a privacy cost, and the default should reflect that. This is a deliberate divergence from Amplitude, which defaults several capture modes on.
+The honest framing is that autocapture is a convenience with a privacy cost, and the default should reflect that. This is a deliberate divergence from the tools that default several capture modes on.
 
-### Scope drift toward Amplitude
+### Scope drift toward a hosted platform's surface
 
-[Document 01](01-amplitude-api-atlas.md) lists a great deal that could be built. The discipline is the filter in [document 02](02-scope-and-mapping.md): analytics-is-hard, not selling-analytics-is-hard.
+[Document 01](01-prior-art.md) lists a great deal that could be built. The discipline is the filter in [document 02](02-scope-and-mapping.md): analytics-is-hard, not selling-analytics-is-hard.
 
 Taxonomy and lookup tables are the two skipped items most likely to be genuinely missed, which is why both are scheduled for v0.3 rather than dismissed.
 
@@ -58,23 +58,23 @@ v0.1 caps export ranges and documents the cap. A streaming `EventStore.scan()` m
 
 These need answering before or during phase 1, because they affect the type contract and are expensive to change later.
 
-### 1. ~~Does `/collect` accept Amplitude's exact payload shape as an alias?~~ CLOSED
+### 1. ~~Does `/collect` accept the flat legacy payload shape as an alias?~~ CLOSED
 
-**Resolved in phase 4: yes, behind `amplitudeCompat`, defaulting to `false`.**
+**Resolved in phase 4: yes, behind `flatPayloadCompat`, defaulting to `false`.**
 
-`normalizeAmplitudeEvent` folds flat device and geo fields into `context` and
+`normalizeFlatEvent` folds flat device and geo fields into `context` and
 `productId` / `revenueType` into `revenue`, then the result goes through the
-ordinary validator. Pointing an existing Amplitude SDK at this URL works.
+ordinary validator. Pointing an existing analytics SDK at this URL works.
 
 Original reasoning below.
 
-### 1b. Does `/collect` accept Amplitude's exact payload shape as an alias?
+### 1b. Does `/collect` accept the flat legacy payload shape as an alias?
 
-Accepting `{ api_key, events }` with flat device and geo fields would make the package a **drop-in replacement** for any codebase already sending to Amplitude. Point the existing SDK at a different URL and it works.
+Accepting `{ api_key, events }` with flat device and geo fields would make the package a **drop-in replacement** for any codebase already sending events in the flat shape. Point the existing SDK at a different URL and it works.
 
 The cost is a compatibility shim in the validator and a second shape to keep working forever.
 
-**Current lean:** yes, behind an `amplitudeCompat: true` flag that defaults to `false`. It is the single strongest adoption argument the package has, and gating it behind a flag keeps the default surface clean.
+**Current lean:** yes, behind an `flatPayloadCompat: true` flag that defaults to `false`. It is the single strongest adoption argument the package has, and gating it behind a flag keeps the default surface clean.
 
 **Decide before:** `validate.ts` is written, in phase 4.
 
@@ -123,11 +123,11 @@ Recorded so they are not relitigated mid-build.
 | Package name | `@gagandeep023/event-analyzer`, scoped only (unscoped is taken) |
 | Runtime dependencies | Zero. Express, React and Recharts are optional peers. |
 | Query transport | `POST` with a JSON body, not `GET` with query parameters |
-| Funnel mode vocabulary | Amplitude's exact words: `ordered`, `unordered`, `sequential` |
+| Funnel mode vocabulary | the conventional words: `ordered`, `unordered`, `sequential` |
 | Retention measures | All three shipped in v0.1, with the `incomplete` flag |
 | Autocapture defaults | Everything off |
 | Root export surface | `types` and `core` only, never `backend` or `frontend` |
-| Amplitude payload compatibility | Accepted behind `amplitudeCompat`, off by default |
+| Flat payload compatibility | Accepted behind `flatPayloadCompat`, off by default |
 | Express dependency | Injected into the router factory, never imported |
 | Duplicate-only batches | Return 200 with `events_ingested: 0`, not 400 |
 | Portfolio integration | Separate work, after publish, against the tarball |

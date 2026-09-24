@@ -65,7 +65,8 @@ export interface SegmentationResult {
 // ---------------------------------------------------------------------------
 
 /**
- * Amplitude's vocabulary, kept verbatim so a migrated query means the same thing.
+ * The conventional vocabulary, kept verbatim so a query migrated from another
+ * product analytics tool means the same thing here.
  *
  * - `ordered`    steps in the given order, other events permitted between them
  * - `unordered`  all steps within the window, in any order
@@ -79,7 +80,7 @@ export const FUNNEL_ORDERS: readonly FunnelOrder[] = Object.freeze([
   'ordered', 'unordered', 'sequential',
 ]);
 
-/** Thirty days, matching Amplitude's default conversion window. */
+/** Thirty days, the conventional default conversion window. */
 export const DEFAULT_CONVERSION_WINDOW_MS = 2_592_000_000;
 
 export interface FunnelQuery extends BaseQuery {
@@ -93,7 +94,7 @@ export interface FunnelQuery extends BaseQuery {
   /** `totals` counts completed attempts rather than users. */
   countBy: Exclude<CountBy, 'average'>;
   groupBy?: PropertyRef;
-  /** Applies to the FIRST step only, matching Amplitude. */
+  /** Applies to the FIRST step only, matching convention. */
   segment?: Filter[];
 }
 
@@ -133,9 +134,9 @@ export interface FunnelResult {
  * - `unbounded` returned on day N or any day after
  * - `bracket`   returned within a caller-defined `[lo, hi]` window
  *
- * Amplitude's own research found `n-day` understates returning users by roughly
- * 3.5x against `unbounded`. Shipping only `n-day` is the usual way a retention
- * implementation is quietly wrong.
+ * On this package's own demo dataset `n-day` reports
+ * roughly a third of what `unbounded` reports for the same users. Shipping only
+ * `n-day` is the usual way a retention implementation is quietly wrong.
  */
 export type RetentionMeasure = 'n-day' | 'unbounded' | 'bracket';
 
@@ -156,7 +157,7 @@ export interface RetentionQuery extends BaseQuery {
   periods: number;
   /** Required when `measure` is `bracket`. */
   brackets?: RetentionBracket[];
-  /** Applies to the START action only, matching Amplitude. */
+  /** Applies to the START action only, matching convention. */
   segment?: Filter[];
 }
 
@@ -272,7 +273,7 @@ export interface SessionResult {
 }
 
 /**
- * Amplitude's default session-length bin edges, in milliseconds.
+ * Conventional session-length bin edges, in milliseconds.
  *
  * Deliberately non-linear: session length is heavily right-skewed and linear
  * bins produce one useless spike. Session length caps at one day.

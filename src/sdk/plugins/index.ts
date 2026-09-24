@@ -1,7 +1,7 @@
 /**
  * Built-in plugins.
  *
- * Autocapture defaults to off. Amplitude defaults several capture modes on,
+ * Autocapture defaults to off. Many analytics tools default several capture modes on,
  * which is convenient and also how people ship tracking they did not know
  * about. For a self-hosted tool the honest default is to capture nothing until
  * asked.

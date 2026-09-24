@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  validateBatch, toRejectionMap, normalizeAmplitudeEvent,
+  validateBatch, toRejectionMap, normalizeFlatEvent,
   MAX_EVENT_TYPE_LENGTH, MAX_STRING_LENGTH, MIN_EVENT_TIME, MAX_CLOCK_SKEW_MS,
 } from './validate';
 
@@ -133,9 +133,9 @@ describe('truncation and deduplication', () => {
   });
 });
 
-describe('Amplitude compatibility', () => {
+describe('flat payload compatibility', () => {
   it('folds flat device and geo fields into context', () => {
-    const out = normalizeAmplitudeEvent({
+    const out = normalizeFlatEvent({
       event_type: 'A', user_id: 'user1',
       platform: 'iOS', os_name: 'iOS', os_version: '17', country: 'India', language: 'en',
     });
@@ -144,7 +144,7 @@ describe('Amplitude compatibility', () => {
   });
 
   it('folds revenue fields, renaming to snake_case', () => {
-    const out = normalizeAmplitudeEvent({
+    const out = normalizeFlatEvent({
       event_type: 'A', user_id: 'user1',
       price: 29, quantity: 2, productId: 'pro', revenueType: 'purchase', currency: 'USD',
     });
@@ -154,7 +154,7 @@ describe('Amplitude compatibility', () => {
   });
 
   it('leaves core fields alone', () => {
-    const out = normalizeAmplitudeEvent({
+    const out = normalizeFlatEvent({
       event_type: 'A', user_id: 'user1', session_id: 123,
       event_properties: { a: 1 }, insert_id: 'x',
     });
@@ -162,7 +162,7 @@ describe('Amplitude compatibility', () => {
   });
 
   it('produces something validateBatch accepts', () => {
-    const normalized = normalizeAmplitudeEvent({ event_type: 'A', user_id: 'user1', platform: 'web' });
+    const normalized = normalizeFlatEvent({ event_type: 'A', user_id: 'user1', platform: 'web' });
     expect(run([normalized]).accepted).toHaveLength(1);
   });
 });

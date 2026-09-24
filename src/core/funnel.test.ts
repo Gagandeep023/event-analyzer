@@ -93,7 +93,7 @@ describe('ordering modes', () => {
   });
 
   it('sequential forbids any other event between two steps', () => {
-    // This is Amplitude's meaning of the word, not the intuitive one.
+    // This is the established meaning of the word, not the intuitive one.
     expect(counts(interleaved, { order: 'sequential' })).toEqual([1, 0, 0]);
   });
 

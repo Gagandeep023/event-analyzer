@@ -179,15 +179,15 @@ interface EventStore {
 `MemoryStore` for tests and demos, `JsonlFileStore` for single-node
 self-hosting. The interface is exported so SQLite or Postgres can drop in.
 
-### Migrating from Amplitude
+### Migrating from a hosted tool
 
 ```ts
-createEventAnalyzerRouter(express, { store, amplitudeCompat: true });
+createEventAnalyzerRouter(express, { store, flatPayloadCompat: true });
 ```
 
-`/collect` then also accepts Amplitude's payload shape: flat device and geo
+`/collect` then also accepts the flat legacy payload shape: flat device and geo
 fields fold into `context`, `productId`/`revenueType` fold into `revenue`. Point
-an existing Amplitude SDK at this URL and it works.
+an existing analytics SDK at this URL and it works.
 
 ---
 
@@ -212,7 +212,7 @@ const conversion = funnel(events, {
 
 ### Funnel modes
 
-Amplitude's vocabulary, kept verbatim so a migrated query means the same thing.
+The conventional vocabulary, kept verbatim so a migrated query means the same thing.
 
 | Mode | Meaning |
 |---|---|
@@ -233,8 +233,8 @@ filter applies to the **first step only**.
 | `unbounded` | Returned on period N **or any period after** |
 | `bracket` | Returned within a custom `[lo, hi]` |
 
-Amplitude's own research found `n-day` understates returning users by roughly
-3.5x against `unbounded`. On this package's own demo data the gap is about 3x.
+On this package's own demo dataset `n-day` reports roughly a third of what
+`unbounded` reports for the same users. On this package's own demo data the gap is about 3x.
 Shipping only `n-day` is the usual way a retention implementation is quietly
 wrong.
 

@@ -177,13 +177,13 @@ export function toRejectionMap(issues: readonly ValidationIssue[]): RejectionMap
 }
 
 /**
- * Normalises Amplitude's own payload shape into ours.
+ * Normalises a flat, legacy payload shape into ours.
  *
  * Flat device and geo fields fold into `context`, revenue fields fold into
  * `revenue`. This is what makes the package a drop-in for a codebase already
- * sending to Amplitude.
+ * sending events in the flat shape.
  */
-export function normalizeAmplitudeEvent(raw: Record<string, unknown>): AnalyticsEvent {
+export function normalizeFlatEvent(raw: Record<string, unknown>): AnalyticsEvent {
   const CONTEXT_KEYS = [
     'platform', 'app_version', 'os_name', 'os_version', 'device_model', 'device_brand',
     'language', 'user_agent', 'ip', 'country', 'region', 'city', 'carrier', 'dma',

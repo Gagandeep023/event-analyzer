@@ -33,7 +33,7 @@ describe('mergeUserProperties', () => {
   });
 
   it('$clearAll wipes everything and invalidates the rest of the payload', () => {
-    // Amplitude documents $clearAll as dominating its own object.
+    // $clearAll dominates its own object by definition.
     expect(m({ a: 1 }, { $clearAll: '-', $set: { b: 2 } })).toEqual({});
   });
 

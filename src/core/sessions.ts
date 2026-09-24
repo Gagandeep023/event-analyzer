@@ -86,7 +86,7 @@ function toSession(userKey: string, sessionId: number, group: AnalyticsEvent[]):
   const sorted = [...group].sort(byTime);
   const start = sorted[0]!.time ?? sessionId;
   const end = sorted[sorted.length - 1]!.time ?? start;
-  // Clamp to the one-day cap, matching Amplitude.
+  // Clamp to the one-day cap, the conventional ceiling.
   const durationMs = Math.min(Math.max(0, end - start), MAX_SESSION_MS);
 
   const types: string[] = [];

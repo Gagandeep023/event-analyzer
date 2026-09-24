@@ -14,7 +14,7 @@ src/types/
 
 ## event.ts
 
-A trimmed version of Amplitude's wire event. Amplitude flattens roughly twenty device and geo fields onto the event root; we group them into a single `context` object, which keeps the type readable and the ingest validator simple.
+A trimmed version of the conventional wire event. Most tools flatten roughly twenty device and geo fields onto the event root; we group them into a single `context` object, which keeps the type readable and the ingest validator simple.
 
 ```ts
 export interface AnalyticsEvent {
@@ -174,7 +174,7 @@ export interface SegmentationResult {
 
 ```ts
 export type FunnelOrder = 'ordered' | 'unordered' | 'sequential';
-// Amplitude's vocabulary, kept verbatim:
+// The conventional vocabulary, kept verbatim:
 //   ordered    = in order, other events allowed between steps
 //   unordered  = all steps, any order
 //   sequential = in order, NO other event between steps
@@ -290,13 +290,13 @@ export interface SessionResult {
 
 ## config.ts
 
-Defaults mirror Amplitude's where they are sensible and diverge where self-hosting changes the tradeoff.
+Defaults follow convention where it is sensible and diverge where self-hosting changes the tradeoff.
 
 | Option | Type | Default | Notes |
 |---|---|---|---|
 | `endpoint` | string | required | Where the SDK POSTs batches |
 | `apiKey` | string | optional | Sent as `X-EA-Key`, not in the body |
-| `flushIntervalMillis` | number | `5000` | Amplitude uses 1,000. A self-hosted collector is not billing per request, so fewer and larger batches are cheaper for everyone. |
+| `flushIntervalMillis` | number | `5000` | Hosted tools use 1,000. A self-hosted collector is not billing per request, so fewer and larger batches are cheaper for everyone. |
 | `flushQueueSize` | number | `30` | Flush immediately at this depth |
 | `flushMaxRetries` | number | `5` | Then the event is dropped with a synthetic 500 |
 | `sessionTimeoutMs` | number | `1800000` | 30 minutes |
@@ -321,4 +321,4 @@ Defaults mirror Amplitude's where they are sensible and diverge where self-hosti
 | `maxEventsPerRequest` | number | `500` | |
 | `maxBodyBytes` | number | `5_000_000` | |
 | `maxStreamConnections` | number | `50` | |
-| `amplitudeCompat` | boolean | `false` | Accept Amplitude's payload shape on `/collect` |
+| `flatPayloadCompat` | boolean | `false` | Accept the flat legacy payload shape on `/collect` |

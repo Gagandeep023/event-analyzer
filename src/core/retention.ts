@@ -2,8 +2,9 @@
  * Retention: how many users come back, and when.
  *
  * Three measures, because shipping only `n-day` is the usual way a retention
- * implementation is quietly wrong. Amplitude's own research found `n-day`
- * understates returning users by roughly 3.5x against `unbounded`.
+ * implementation is quietly wrong. On real data the gap is
+ * large: this package's own demo dataset shows `n-day` reporting roughly a third
+ * of what `unbounded` reports for the same users.
  *
  *   n-day     returned on exactly period N
  *   unbounded returned on period N or any period after
@@ -46,7 +47,7 @@ export function retention(
   const records: UserRecord[] = [];
 
   for (const userEvents of byUser.values()) {
-    // The segment applies to the START action only, matching Amplitude.
+    // The segment applies to the START action only, matching convention.
     const start = userEvents.find(
       (ev) =>
         matchesStep(ev, q.startAction, { allowRegex }) &&
@@ -202,8 +203,8 @@ function isRetained(returns: readonly number[], spec: PeriodSpec): boolean {
  * A cohort is only fairly measurable at period N if the query range actually
  * extends N periods past the cohort start.
  *
- * Amplitude flags rather than excludes, leaving the decision to the renderer.
- * We adopt both the behaviour and the field name.
+ * Flagging rather than excluding leaves the decision to the renderer, which is
+ * the only layer that knows how to show uncertainty.
  */
 function isObservable(
   cohortStart: number,
