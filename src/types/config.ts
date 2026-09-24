@@ -171,8 +171,18 @@ export interface StoreMeta {
   totalEvents: number;
 }
 
-/** Minimal Express middleware shape, so `express` stays an optional peer. */
-export type RequestHandlerLike = (req: unknown, res: unknown, next: (err?: unknown) => void) => void;
+/**
+ * Minimal Express middleware shape, so `express` stays an optional peer.
+ *
+ * `req` and `res` are `any` rather than `unknown` on purpose. This is an interop
+ * boundary: a caller passing a properly typed `(req: Request, res: Response)`
+ * handler must be assignable here, and parameter contravariance makes that
+ * impossible against `unknown`. Narrowing this would force every consumer to
+ * cast their own middleware.
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export type RequestHandlerLike = (req: any, res: any, next: (err?: unknown) => void) => void;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export interface BackendConfig {
   /** Required. */
