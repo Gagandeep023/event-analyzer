@@ -1,6 +1,6 @@
 {
   "name": "@gagandeep023/event-analyzer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Self-hosted product analytics: event capture SDK, Express collector, zero-dependency funnel/retention/cohort engine, and a React dashboard",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -79,12 +79,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
   "peerDependencies": {
     "express": "^4.0.0 || ^5.0.0",
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0",
-    "recharts": "^2.0.0 || ^3.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
     "express": {
@@ -95,12 +93,11 @@
     },
     "react-dom": {
       "optional": true
-    },
-    "recharts": {
-      "optional": true
     }
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
     "@types/express": "^5.0.6",
     "@types/node": "^25.3.0",
     "@types/react": "^19.2.14",
@@ -109,12 +106,12 @@
     "@typescript-eslint/parser": "^8.56.0",
     "eslint": "^10.0.1",
     "express": "^5.1.0",
+    "jsdom": "^29.1.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "recharts": "^3.7.0",
     "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "4.0.18",
-    "tsx": "^4.21.0"
+    "vitest": "4.0.18"
   }
 }

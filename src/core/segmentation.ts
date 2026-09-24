@@ -134,7 +134,38 @@ export function segmentation(
     series.sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
   }
 
-  return { series, buckets, granularity: q.granularity };
+  const result: SegmentationResult = { series, buckets, granularity: q.granularity };
+
+  if (q.compare) {
+    // The immediately preceding window of equal length. A count on its own is
+    // unreadable: 1,240 users is good or bad only against last week.
+    const span = q.range.to - q.range.from;
+    const previousRange = { from: q.range.from - span, to: q.range.from };
+    const prev = segmentation(
+      events,
+      { ...q, range: previousRange, compare: false },
+      graph,
+      opts,
+    );
+
+    const byLabel = new Map(prev.series.map((s) => [s.label, s]));
+    result.previous = {
+      series: prev.series,
+      range: previousRange,
+      delta: series.map((s) => {
+        const before = byLabel.get(s.label)?.total ?? 0;
+        return {
+          label: s.label,
+          current: s.total,
+          previous: before,
+          // Null rather than Infinity: appearing from nothing is not a percentage.
+          change: before === 0 ? null : (s.total - before) / before,
+        };
+      }),
+    };
+  }
+
+  return result;
 }
 
 /** Group label for an event. Missing values collapse into a single bucket. */

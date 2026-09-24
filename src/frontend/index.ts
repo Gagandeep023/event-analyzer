@@ -6,27 +6,33 @@
  *
  *   <EventAnalyzerDashboard baseUrl="/api/events" />
  *
- * Requires `react`, `react-dom` and `recharts` as peer dependencies.
+ * Requires `react` and `react-dom` as peer dependencies. Charts are hand-rolled
+ * SVG, so there is no charting library to install.
  */
 
-export const FRONTEND_VERSION = '0.1.0';
+export const FRONTEND_VERSION = '0.3.0';
 
 export {
   EventAnalyzerDashboard,
   type EventAnalyzerDashboardProps,
-  type PanelKey,
+  type PageKey,
+  type RangeKey,
 } from './EventAnalyzerDashboard';
+
+export { Overview, type Metric, type OverviewProps } from './pages/Overview';
+export { Events } from './pages/Events';
+export { Funnels, type FunnelDef } from './pages/Funnels';
+export { Retention } from './pages/Retention';
+export { Live } from './pages/Live';
+
+export { TimeSeries, Donut, BarList, BarChart, Heatmap } from './charts';
+export type { TimeSeriesProps, DonutProps, DonutSlice, BarDatum } from './charts';
+
+export { Panel, Segmented, Delta, Empty, Loading, ErrorBox, Async } from './components';
 
 export {
   useQuery, useMeta, useEventStream, useRange,
-  type ApiContext, type QueryState, type StreamState, type Fetcher,
+  type ApiContext, type QueryState, type StreamState, type LiveEvent, type Fetcher,
 } from './hooks';
 
-export {
-  StatTile, RangePicker, Toggle, Empty, Loading, ErrorBox, Panel,
-  num, pct, duration, shortDate,
-} from './components';
-
-export {
-  EventsPanel, FunnelPanel, RetentionPanel, SessionsPanel, CohortPanel, LivePanel,
-} from './panels';
+export { T, CATEGORICAL, fmt, pct, delta, shortDate, clockTime, duration, ago } from './theme';

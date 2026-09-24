@@ -74,6 +74,7 @@ export { segmentation, OTHER_GROUP_LABEL, DEFAULT_LIMIT_GROUPS } from './segment
 export { funnel, MAX_FUNNEL_ATTEMPTS } from './funnel';
 export { retention } from './retention';
 export { buildCohort } from './cohort';
+export { eventStats, DEFAULT_EVENT_LIMIT } from './events';
 export {
   deriveSessions,
   sessionStats,

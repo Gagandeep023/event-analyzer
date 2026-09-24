@@ -1,54 +1,75 @@
 /**
- * The dashboard.
+ * The dashboard shell.
  *
- * Takes a base URL and a fetch wrapper. Knows nothing about the host
- * application's routing, auth or styling beyond the CSS custom properties it
- * exposes for theming.
+ * Sidebar, header, and five pages. Takes a base URL and a fetch wrapper; knows
+ * nothing about the host application's routing, auth or styling beyond the CSS
+ * custom properties it exposes.
  */
 
-import React, { useMemo, useRef, useState } from 'react';
-import type { ApiContext } from './hooks';
-import { useMeta } from './hooks';
+import React, { useMemo, useState } from 'react';
+import type { MetaResponse } from '../types';
+import { useMeta, type ApiContext, type Fetcher } from './hooks';
 import { ErrorBox, Loading } from './components';
-import {
-  CohortPanel, EventsPanel, FunnelPanel, LivePanel, RetentionPanel, SessionsPanel,
-} from './panels';
+import { Overview, type Metric } from './pages/Overview';
+import { Events } from './pages/Events';
+import { Funnels, type FunnelDef } from './pages/Funnels';
+import { Retention } from './pages/Retention';
+import { Live } from './pages/Live';
+import { fmt } from './theme';
 
-export type PanelKey = 'live' | 'events' | 'funnel' | 'retention' | 'sessions' | 'cohort';
+export type PageKey = 'overview' | 'events' | 'funnels' | 'retention' | 'live';
 
-const PANEL_LABELS: Record<PanelKey, string> = {
-  live: 'Live',
-  events: 'Events',
-  funnel: 'Funnel',
-  retention: 'Retention',
-  sessions: 'Sessions',
-  cohort: 'Cohort',
-};
+export type RangeKey = '24h' | '7d' | '30d' | '90d';
 
-const DEFAULT_PANELS: PanelKey[] = ['events', 'funnel', 'retention', 'sessions', 'cohort', 'live'];
+const RANGES: ReadonlyArray<{ value: RangeKey; label: string; days: number }> = [
+  { value: '24h', label: '24h', days: 1 },
+  { value: '7d', label: '7d', days: 7 },
+  { value: '30d', label: '30d', days: 30 },
+  { value: '90d', label: '90d', days: 90 },
+];
+
+const PAGES: ReadonlyArray<{ key: PageKey; label: string }> = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'events', label: 'Events' },
+  { key: 'funnels', label: 'Funnels' },
+  { key: 'retention', label: 'Retention' },
+  { key: 'live', label: 'Live' },
+];
 
 export interface EventAnalyzerDashboardProps {
   /** Where the router is mounted, e.g. `/api/events`. */
   baseUrl: string;
-  /** Inject an authenticated wrapper here. Defaults to `window.fetch`. */
-  fetcher?: typeof fetch;
-  /** Minutes east of UTC. Defaults to the browser's own offset. */
+  /** Inject an authenticated wrapper. Defaults to `window.fetch`. */
+  fetcher?: Fetcher;
+  /** Minutes east of UTC. Defaults to the viewer's own offset. */
   tzOffsetMin?: number;
-  /** Which panels to show, in order. */
-  panels?: PanelKey[];
-  /** Heading shown above the tabs. Pass null to omit it. */
-  title?: string | null;
+  /** Shown in the sidebar footer. */
+  projectName?: string;
+  /** Which pages to show, in order. */
+  pages?: PageKey[];
+  defaultRange?: RangeKey;
+  /**
+   * Named funnels. When omitted, one is inferred from the most common event
+   * types so the page is useful before anything is configured.
+   */
+  funnels?: FunnelDef[];
+  /** Property to break users down by on Overview. Set null to hide the donut. */
+  breakdownBy?: { scope: 'event' | 'user' | 'context' | 'group'; key: string } | null;
 }
 
 export function EventAnalyzerDashboard({
   baseUrl,
   fetcher,
   tzOffsetMin,
-  panels = DEFAULT_PANELS,
-  title = 'Event Analyzer',
+  projectName,
+  pages = ['overview', 'events', 'funnels', 'retention', 'live'],
+  defaultRange = '7d',
+  funnels,
+  breakdownBy = { scope: 'context', key: 'site' },
 }: EventAnalyzerDashboardProps): React.ReactElement {
-  const [active, setActive] = useState<PanelKey>(panels[0] ?? 'events');
-  const tabsRef = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState<PageKey>(pages[0] ?? 'overview');
+  const [rangeKey, setRangeKey] = useState<RangeKey>(defaultRange);
+  const [metric, setMetric] = useState<Metric>('users');
 
   const api: ApiContext = useMemo(
     () => ({ baseUrl: baseUrl.replace(/\/$/, ''), fetcher: fetcher ?? fetch.bind(globalThis) }),
@@ -56,59 +77,122 @@ export function EventAnalyzerDashboard({
   );
 
   const offset = tzOffsetMin ?? -new Date().getTimezoneOffset();
-  const { data: meta, error, loading } = useMeta(api);
+  const days = RANGES.find((r) => r.value === rangeKey)?.days ?? 7;
+  const range = useMemo(() => {
+    const to = Date.now();
+    return { from: to - days * 86_400_000, to };
+  }, [days]);
+  const granularity = days <= 1 ? ('hour' as const) : ('day' as const);
 
-  const onTabKeyDown = (e: React.KeyboardEvent): void => {
-    const i = panels.indexOf(active);
-    if (e.key === 'ArrowRight') setActive(panels[(i + 1) % panels.length]!);
-    else if (e.key === 'ArrowLeft') setActive(panels[(i - 1 + panels.length) % panels.length]!);
-    else return;
-    e.preventDefault();
-  };
+  const meta = useMeta(api);
+  const eventTypes = useMemo(
+    () => (meta.data?.eventTypes ?? []).map((e) => e.event_type),
+    [meta.data],
+  );
 
-  const props = { api, meta, tzOffsetMin: offset };
+  // Without a configured funnel, the first few discovered event types are a
+  // better default than an empty panel.
+  const resolvedFunnels: FunnelDef[] = useMemo(() => {
+    if (funnels && funnels.length) return funnels;
+    if (eventTypes.length < 2) return [];
+    return [{ name: 'Discovered flow', steps: eventTypes.slice(0, 4) }];
+  }, [funnels, eventTypes]);
+
+  const subtitle = SUBTITLES[page](meta.data, rangeKey);
+  const showRange = page !== 'retention' && page !== 'live';
 
   return (
-    <div className="ea-root">
-      <header className="ea-head">
-        {title ? <h1 className="ea-title">{title}</h1> : null}
-        {meta ? (
-          <p className="ea-sub">
-            {meta.totalEvents.toLocaleString()} events
-            {meta.eventTypes.length > 0 ? ` · ${meta.eventTypes.length} types` : ''}
-          </p>
+    <div className="ea">
+      <aside className="ea-side">
+        <div className="ea-logo">
+          <span className="ea-logo-mark" aria-hidden />
+          <span className="ea-logo-text">Event Analyzer</span>
+        </div>
+
+        <nav className="ea-nav" aria-label="Sections">
+          {pages.map((key) => {
+            const item = PAGES.find((p) => p.key === key);
+            if (!item) return null;
+            return (
+              <button
+                key={key}
+                type="button"
+                aria-current={page === key ? 'page' : undefined}
+                onClick={() => setPage(key)}
+              >
+                <span>{item.label}</span>
+                {key === 'live' ? <span className="ea-live-dot" aria-hidden /> : null}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="ea-side-foot">
+          <span className="k">Project</span>
+          <span className="v">{projectName ?? 'this deployment'}</span>
+          <span className="s">
+            {meta.error ? 'collector · unreachable' : meta.data ? 'collector · healthy' : 'collector · …'}
+          </span>
+        </div>
+      </aside>
+
+      <main className="ea-main">
+        <header className="ea-head">
+          <div>
+            <h1 className="ea-title">{PAGES.find((p) => p.key === page)?.label}</h1>
+            <p className="ea-subtitle">{subtitle}</p>
+          </div>
+          {showRange ? (
+            <div className="ea-seg" role="group" aria-label="Date range">
+              {RANGES.map((r) => (
+                <button key={r.value} type="button" aria-pressed={r.value === rangeKey}
+                        onClick={() => setRangeKey(r.value)}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </header>
+
+        {meta.error ? <ErrorBox message={meta.error} /> : null}
+        {meta.loading && !meta.data ? <Loading height={260} /> : null}
+
+        {page === 'overview' ? (
+          <Overview
+            api={api}
+            range={range}
+            granularity={granularity}
+            tzOffsetMin={offset}
+            metric={metric}
+            onMetric={setMetric}
+            funnelSteps={resolvedFunnels[0]?.steps ?? []}
+            onOpenFunnel={() => setPage('funnels')}
+            onOpenEvents={() => setPage('events')}
+            breakdownKey={breakdownBy}
+          />
         ) : null}
-      </header>
 
-      <div className="ea-tabs" role="tablist" aria-label="Panels" ref={tabsRef} onKeyDown={onTabKeyDown}>
-        {panels.map((key) => (
-          <button
-            key={key}
-            role="tab"
-            type="button"
-            id={`ea-tab-${key}`}
-            aria-selected={key === active}
-            aria-controls={`ea-panel-${key}`}
-            tabIndex={key === active ? 0 : -1}
-            className={`ea-tab${key === active ? ' ea-tab-on' : ''}`}
-            onClick={() => setActive(key)}
-          >
-            {PANEL_LABELS[key]}
-          </button>
-        ))}
-      </div>
+        {page === 'events' ? <Events api={api} range={range} tzOffsetMin={offset} /> : null}
 
-      <div id={`ea-panel-${active}`} role="tabpanel" aria-labelledby={`ea-tab-${active}`}>
-        {error ? <ErrorBox message={error} /> : null}
-        {loading && !meta ? <Loading /> : null}
+        {page === 'funnels' ? (
+          <Funnels api={api} range={range} tzOffsetMin={offset} funnels={resolvedFunnels} />
+        ) : null}
 
-        {active === 'live' ? <LivePanel {...props} /> : null}
-        {active === 'events' ? <EventsPanel {...props} /> : null}
-        {active === 'funnel' ? <FunnelPanel {...props} /> : null}
-        {active === 'retention' ? <RetentionPanel {...props} /> : null}
-        {active === 'sessions' ? <SessionsPanel {...props} /> : null}
-        {active === 'cohort' ? <CohortPanel {...props} /> : null}
-      </div>
+        {page === 'retention' ? (
+          <Retention api={api} range={range} tzOffsetMin={offset} startEvent={eventTypes[0] ?? null} />
+        ) : null}
+
+        {page === 'live' ? <Live api={api} /> : null}
+      </main>
     </div>
   );
 }
+
+const SUBTITLES: Record<PageKey, (meta: MetaResponse | null, range: RangeKey) => string> = {
+  overview: () => 'How the product is doing, at a glance.',
+  events: (meta, range) =>
+    `${meta ? fmt(meta.eventTypes.length) : '—'} tracked events · last ${range}`,
+  funnels: () => 'Where people progress and where they drop.',
+  retention: () => 'Share of each cohort that came back.',
+  live: () => 'Events as the collector receives them.',
+};

@@ -7,7 +7,7 @@ analysis engine, and a React dashboard.
 npm i @gagandeep023/event-analyzer
 ```
 
-Nothing is installed alongside it. `express`, `react`, `react-dom` and `recharts`
+Nothing is installed alongside it. `express`, `react` and `react-dom`
 are optional peers, so installing this package for its analysis engine alone
 pulls in nothing.
 
@@ -146,6 +146,7 @@ missing, but it cannot supply one for you.
 | `POST` | `/query/retention` | Curve plus cohort table |
 | `POST` | `/query/cohort` | Users matching a behavioural definition |
 | `POST` | `/query/sessions` | Session stats and stickiness |
+| `POST` | `/query/events` | Per-event counts, unique users, last seen |
 | `GET` | `/meta` | Discovered event types and property keys |
 | `GET` | `/export` | Raw events as NDJSON |
 | `GET` | `/stream` | Live feed over SSE |

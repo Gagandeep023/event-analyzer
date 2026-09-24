@@ -40,6 +40,14 @@ export interface SegmentationQuery extends BaseQuery {
   segment?: Filter[];
   /** Default 10. The tail beyond this is summed into an `Other` series. */
   limitGroups?: number;
+  /**
+   * Also compute the immediately preceding window of equal length.
+   *
+   * A number without a comparison is hard to read: 1,240 users is good or bad
+   * only relative to last week. This is what powers deltas and the dashed
+   * previous-period line.
+   */
+  compare?: boolean;
 }
 
 export interface SeriesPoint {
@@ -58,6 +66,57 @@ export interface SegmentationResult {
   /** Shared x-axis. Bucket start times, including empty buckets. */
   buckets: number[];
   granularity: Granularity;
+  /**
+   * The preceding window, present only when `compare` was set.
+   *
+   * `series` is aligned index-for-index with the current period so a renderer
+   * can draw both on one axis. `range` is the window it covers.
+   */
+  previous?: {
+    series: Series[];
+    range: TimeRange;
+    /** Per-series change, current vs previous. Null when previous is zero. */
+    delta: Array<{ label: string; current: number; previous: number; change: number | null }>;
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Event catalogue
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-event-type statistics.
+ *
+ * What a dashboard's "all events" table needs, and what `/meta` deliberately
+ * does not carry: meta lists which event types exist, this counts them.
+ */
+export interface EventsQuery extends BaseQuery {
+  segment?: Filter[];
+  /** Substring match on the event name, case-insensitive. */
+  search?: string;
+  /** Default 100. */
+  limit?: number;
+  compare?: boolean;
+}
+
+export interface EventStat {
+  event_type: string;
+  count: number;
+  users: number;
+  firstSeen: number;
+  lastSeen: number;
+  /** Share of all events in the range, 0..1. */
+  share: number;
+  /** Change in count against the preceding window. Null unless `compare`. */
+  change?: number | null;
+}
+
+export interface EventsResult {
+  events: EventStat[];
+  totalEvents: number;
+  totalUsers: number;
+  /** Distinct event types before `limit` was applied. */
+  distinctTypes: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -290,13 +349,15 @@ export const MAX_SESSION_MS = 86_400_000;
 // ---------------------------------------------------------------------------
 
 /** The five analyses reachable through `POST /query/:kind`. */
-export type QueryKind = 'segmentation' | 'funnel' | 'retention' | 'cohort' | 'sessions';
+export type QueryKind =
+  | 'segmentation' | 'funnel' | 'retention' | 'cohort' | 'sessions' | 'events';
 
 export const QUERY_KINDS: readonly QueryKind[] = Object.freeze([
-  'segmentation', 'funnel', 'retention', 'cohort', 'sessions',
+  'segmentation', 'funnel', 'retention', 'cohort', 'sessions', 'events',
 ]);
 
 export interface QueryMap {
+  events: { query: EventsQuery; result: EventsResult };
   segmentation: { query: SegmentationQuery; result: SegmentationResult };
   funnel: { query: FunnelQuery; result: FunnelResult };
   retention: { query: RetentionQuery; result: RetentionResult };

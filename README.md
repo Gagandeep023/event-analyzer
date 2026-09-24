@@ -23,9 +23,9 @@
 npm i @gagandeep023/event-analyzer
 ```
 
-Nothing else is installed. `express`, `react`, `react-dom` and `recharts` are
-**optional** peers, so pulling this in for the analysis engine alone adds exactly
-one package to your tree.
+Nothing else is installed. `express`, `react` and `react-dom` are **optional**
+peers, so pulling this in for the analysis engine alone adds exactly one package
+to your tree. Charts are hand-rolled SVG; there is no charting library.
 
 ---
 
@@ -48,8 +48,8 @@ server in exchange. This gives you the tooling and keeps the data on disk.
 ```
   ./sdk        capture      browser + node, batching, retry, offline queue
   ./backend    collect      express router, validation, pluggable storage
-  ./core       analyse      pure functions: funnel, retention, cohort, sessions
-  ./frontend   render       react dashboard, six panels
+  ./core       analyse      funnel, retention, cohort, sessions, events, segments
+  ./frontend   render       react dashboard: 5 pages, SVG charts, no chart lib
 ```
 
 ### Capture

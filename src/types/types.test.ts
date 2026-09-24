@@ -84,9 +84,9 @@ describe('query tables', () => {
     expect([...RETENTION_MEASURES].sort()).toEqual(['bracket', 'n-day', 'unbounded']);
   });
 
-  it('exposes five query kinds', () => {
+  it('exposes six query kinds', () => {
     expect([...QUERY_KINDS].sort()).toEqual([
-      'cohort', 'funnel', 'retention', 'segmentation', 'sessions',
+      'cohort', 'events', 'funnel', 'retention', 'segmentation', 'sessions',
     ]);
   });
 

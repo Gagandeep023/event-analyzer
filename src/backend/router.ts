@@ -9,6 +9,7 @@ import type {
   AnalyticsEvent,
   BackendConfig,
   CohortQuery,
+  EventsQuery,
   FunnelQuery,
   Logger,
   QueryKind,
@@ -21,6 +22,7 @@ import { BACKEND_DEFAULTS, QUERY_KINDS } from '../types';
 import {
   buildCohort,
   buildIdentityGraph,
+  eventStats,
   funnel,
   retention,
   segmentation,
@@ -274,7 +276,13 @@ export function createEventAnalyzerRouter<R>(express: ExpressLike<R>, config: Ba
     }
     if (q.tzOffsetMin === undefined) q.tzOffsetMin = cfg.defaultTzOffsetMin;
 
-    const events = await cfg.store.query(q.range);
+    // A comparison reads the preceding window of equal length, so widen the
+    // fetch. Without this `previous` comes back empty and every delta is null.
+    const span = q.range.to - q.range.from;
+    const fetchRange = q.compare === true
+      ? { from: q.range.from - span, to: q.range.to }
+      : q.range;
+    const events = await cfg.store.query(fetchRange);
     const aliases = isAliasCapable(cfg.store) ? await cfg.store.aliases() : [];
     // Built once per query and passed into the analysis, so device-to-user
     // resolution is paid for once rather than per chart.
@@ -296,6 +304,9 @@ export function createEventAnalyzerRouter<R>(express: ExpressLike<R>, config: Ba
         return;
       case 'sessions':
         res.json(sessionStats(events, q as unknown as SessionQuery, ids, opts));
+        return;
+      case 'events':
+        res.json(eventStats(events, q as unknown as EventsQuery, ids, opts));
         return;
     }
   }));

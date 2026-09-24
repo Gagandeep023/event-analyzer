@@ -1,40 +1,31 @@
 /** Shared presentational pieces. */
 
 import React from 'react';
+import { delta as fmtDelta } from '../theme';
 
-export function StatTile({
-  label, value, hint,
-}: { label: string; value: string; hint?: string }): React.ReactElement {
+export function Panel({
+  title, aside, children, style,
+}: {
+  /** A node, not just a string: the Live panel puts a status dot in its title. */
+  title?: React.ReactNode;
+  aside?: React.ReactNode;
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}): React.ReactElement {
   return (
-    <div className="ea-tile">
-      <div className="ea-tile-label">{label}</div>
-      <div className="ea-tile-value">{value}</div>
-      {hint ? <div className="ea-tile-hint">{hint}</div> : null}
-    </div>
+    <section className="ea-panel" style={style}>
+      {title || aside ? (
+        <header className="ea-panel-head">
+          {title ? <h2 className="ea-panel-title">{title}</h2> : <span />}
+          {aside ? <div className="ea-panel-aside">{aside}</div> : null}
+        </header>
+      ) : null}
+      {children}
+    </section>
   );
 }
 
-export function RangePicker({
-  days, onChange, options = [7, 30, 90],
-}: { days: number; onChange: (d: number) => void; options?: number[] }): React.ReactElement {
-  return (
-    <div className="ea-range" role="group" aria-label="Time range">
-      {options.map((d) => (
-        <button
-          key={d}
-          type="button"
-          className={`ea-chip${d === days ? ' ea-chip-on' : ''}`}
-          aria-pressed={d === days}
-          onClick={() => onChange(d)}
-        >
-          {d}d
-        </button>
-      ))}
-    </div>
-  );
-}
-
-export function Toggle<T extends string>({
+export function Segmented<T extends string>({
   value, options, onChange, label,
 }: {
   value: T;
@@ -43,15 +34,10 @@ export function Toggle<T extends string>({
   label: string;
 }): React.ReactElement {
   return (
-    <div className="ea-range" role="group" aria-label={label}>
+    <div className="ea-seg" role="group" aria-label={label}>
       {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          className={`ea-chip${o.value === value ? ' ea-chip-on' : ''}`}
-          aria-pressed={o.value === value}
-          onClick={() => onChange(o.value)}
-        >
+        <button key={o.value} type="button" aria-pressed={o.value === value}
+                onClick={() => onChange(o.value)}>
           {o.label}
         </button>
       ))}
@@ -60,25 +46,29 @@ export function Toggle<T extends string>({
 }
 
 /**
- * Explicit empty state.
+ * A delta chip.
  *
- * "No events yet" with the exact curl to send one beats an empty chart, which
- * is indistinguishable from a broken chart.
+ * Anything under one percent renders neutral. Dressing a 0.3% wiggle in green
+ * invites someone to read a trend that is not there.
  */
-export function Empty({
-  title, hint, curl,
-}: { title: string; hint?: string; curl?: string }): React.ReactElement {
+export function Delta({ change }: { change: number | null | undefined }): React.ReactElement {
+  const d = fmtDelta(change);
+  const cls = d.dir === 'up' ? 'ea-up' : d.dir === 'down' ? 'ea-down' : 'ea-flat';
+  return <span className={`ea-kpi-delta ${cls}`}>{d.text}</span>;
+}
+
+export function Empty({ title, hint, curl }: { title: string; hint?: string; curl?: string }): React.ReactElement {
   return (
     <div className="ea-empty">
-      <p className="ea-empty-title">{title}</p>
-      {hint ? <p className="ea-empty-hint">{hint}</p> : null}
-      {curl ? <pre className="ea-empty-curl">{curl}</pre> : null}
+      <p style={{ margin: 0, color: 'var(--ea-ink-3)' }}>{title}</p>
+      {hint ? <p style={{ margin: '6px 0 0', fontSize: 13 }}>{hint}</p> : null}
+      {curl ? <p style={{ margin: '12px 0 0' }}><code>{curl}</code></p> : null}
     </div>
   );
 }
 
-export function Loading(): React.ReactElement {
-  return <div className="ea-loading" role="status">Loading…</div>;
+export function Loading({ height = 120 }: { height?: number }): React.ReactElement {
+  return <div className="ea-skeleton" style={{ height }} role="status" aria-label="Loading" />;
 }
 
 export function ErrorBox({ message }: { message: string }): React.ReactElement {
@@ -89,46 +79,17 @@ export function ErrorBox({ message }: { message: string }): React.ReactElement {
   );
 }
 
-export function Panel({
-  title, actions, children,
+/** Wraps a panel body in the three states every query has. */
+export function Async<T>({
+  state, children, empty, height,
 }: {
-  title: string;
-  actions?: React.ReactNode;
-  children: React.ReactNode;
+  state: { data: T | null; error: string | null; loading: boolean };
+  children: (data: T) => React.ReactNode;
+  empty?: React.ReactNode;
+  height?: number;
 }): React.ReactElement {
-  return (
-    <section className="ea-panel">
-      <header className="ea-panel-head">
-        <h2 className="ea-panel-title">{title}</h2>
-        {actions ? <div className="ea-panel-actions">{actions}</div> : null}
-      </header>
-      {children}
-    </section>
-  );
-}
-
-/** Numbers that line up in a column. */
-export function num(n: number): string {
-  return n.toLocaleString();
-}
-
-export function pct(n: number): string {
-  return `${(n * 100).toFixed(1)}%`;
-}
-
-export function duration(ms: number | null): string {
-  if (ms === null) return '—';
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  const s = ms / 1000;
-  if (s < 60) return `${s.toFixed(1)}s`;
-  const m = s / 60;
-  if (m < 60) return `${m.toFixed(1)}m`;
-  const h = m / 60;
-  if (h < 24) return `${h.toFixed(1)}h`;
-  return `${(h / 24).toFixed(1)}d`;
-}
-
-export function shortDate(t: number): string {
-  const d = new Date(t);
-  return `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
+  if (state.error) return <ErrorBox message={state.error} />;
+  if (!state.data && state.loading) return <Loading height={height} />;
+  if (!state.data) return <>{empty ?? <Empty title="No data yet." />}</>;
+  return <>{children(state.data)}</>;
 }

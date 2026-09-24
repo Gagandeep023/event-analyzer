@@ -15,5 +15,5 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   minify: false,
-  external: ['express', 'react', 'react-dom', 'recharts'],
+  external: ['express', 'react', 'react-dom'],
 });
