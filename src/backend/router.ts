@@ -8,8 +8,11 @@
 import type {
   AnalyticsEvent,
   BackendConfig,
+  ActivityQuery,
+  BreakdownQuery,
   CohortQuery,
   EventsQuery,
+  GrowthQuery,
   FunnelQuery,
   Logger,
   QueryKind,
@@ -20,9 +23,12 @@ import type {
 } from '../types';
 import { BACKEND_DEFAULTS, QUERY_KINDS } from '../types';
 import {
+  activity,
+  breakdown,
   buildCohort,
   buildIdentityGraph,
   eventStats,
+  growth,
   funnel,
   retention,
   segmentation,
@@ -307,6 +313,15 @@ export function createEventAnalyzerRouter<R>(express: ExpressLike<R>, config: Ba
         return;
       case 'events':
         res.json(eventStats(events, q as unknown as EventsQuery, ids, opts));
+        return;
+      case 'breakdown':
+        res.json(breakdown(events, q as unknown as BreakdownQuery, ids, opts));
+        return;
+      case 'growth':
+        res.json(growth(events, q as unknown as GrowthQuery, ids, opts));
+        return;
+      case 'activity':
+        res.json(activity(events, q as unknown as ActivityQuery, ids, opts));
         return;
     }
   }));

@@ -120,6 +120,115 @@ export interface EventsResult {
 }
 
 // ---------------------------------------------------------------------------
+// Breakdown
+// ---------------------------------------------------------------------------
+
+/**
+ * Top values of one property.
+ *
+ * The workhorse behind every "top pages / browsers / countries / referrers"
+ * table. Segmentation with a group-by can produce the same totals, but it also
+ * builds a full time series per group, which is wasted work when all you want
+ * is a ranked list.
+ */
+export interface BreakdownQuery extends BaseQuery {
+  property: PropertyRef;
+  /** Restrict to one event type, e.g. page views for a top-pages table. */
+  event?: StepSpec;
+  segment?: Filter[];
+  /** Default 20. The tail is folded into an `Other` row. */
+  limit?: number;
+  /** Rank by distinct users rather than event count. Default 'users'. */
+  rankBy?: 'users' | 'events';
+  compare?: boolean;
+}
+
+export interface BreakdownRow {
+  value: string;
+  users: number;
+  events: number;
+  /** Share of the ranking metric, 0..1. */
+  share: number;
+  /** Change against the preceding window. Null when there is no baseline. */
+  change?: number | null;
+}
+
+export interface BreakdownResult {
+  property: PropertyRef;
+  rows: BreakdownRow[];
+  totalUsers: number;
+  totalEvents: number;
+  /** Distinct values before `limit` was applied. */
+  distinctValues: number;
+}
+
+// ---------------------------------------------------------------------------
+// Growth accounting
+// ---------------------------------------------------------------------------
+
+/**
+ * New / returning / resurrected / dormant, per period.
+ *
+ * The question a KPI cannot answer: a flat active-user count can hide heavy
+ * churn masked by heavy acquisition. This splits each period's actives by where
+ * they came from, and counts who fell out.
+ */
+export interface GrowthQuery extends BaseQuery {
+  /** Which event counts as activity. Defaults to any. */
+  event?: StepSpec;
+  interval: Interval;
+  segment?: Filter[];
+  /** Periods of inactivity before a returning user counts as resurrected. Default 2. */
+  dormantAfter?: number;
+}
+
+export interface GrowthPoint {
+  t: number;
+  label: string;
+  /** First ever seen in this period. */
+  newUsers: number;
+  /** Active in this period and the one before. */
+  returning: number;
+  /** Active now, dormant for at least `dormantAfter` periods before. */
+  resurrected: number;
+  /** Active in the previous period, not in this one. Reported negative. */
+  churned: number;
+  active: number;
+  /** newUsers + resurrected - |churned|. */
+  netChange: number;
+}
+
+export interface GrowthResult {
+  interval: Interval;
+  points: GrowthPoint[];
+  /** Sum over the range. */
+  totals: { newUsers: number; resurrected: number; churned: number };
+  /** Retained divided by those who could have been retained, across the range. */
+  quickRatio: number | null;
+}
+
+// ---------------------------------------------------------------------------
+// Activity matrix
+// ---------------------------------------------------------------------------
+
+/** Day-of-week by hour-of-day, the "when are people actually here" heatmap. */
+export interface ActivityQuery extends BaseQuery {
+  event?: StepSpec;
+  segment?: Filter[];
+  countBy?: 'uniques' | 'totals';
+}
+
+export interface ActivityResult {
+  /** `cells[day][hour]`. Day 0 is Monday. */
+  cells: number[][];
+  peak: number;
+  /** Totals per day of week and per hour, for the margins. */
+  byDay: number[];
+  byHour: number[];
+  busiest: { day: number; hour: number; value: number } | null;
+}
+
+// ---------------------------------------------------------------------------
 // Funnel
 // ---------------------------------------------------------------------------
 
@@ -350,14 +459,19 @@ export const MAX_SESSION_MS = 86_400_000;
 
 /** The five analyses reachable through `POST /query/:kind`. */
 export type QueryKind =
-  | 'segmentation' | 'funnel' | 'retention' | 'cohort' | 'sessions' | 'events';
+  | 'segmentation' | 'funnel' | 'retention' | 'cohort' | 'sessions'
+  | 'events' | 'breakdown' | 'growth' | 'activity';
 
 export const QUERY_KINDS: readonly QueryKind[] = Object.freeze([
-  'segmentation', 'funnel', 'retention', 'cohort', 'sessions', 'events',
+  'segmentation', 'funnel', 'retention', 'cohort', 'sessions',
+  'events', 'breakdown', 'growth', 'activity',
 ]);
 
 export interface QueryMap {
   events: { query: EventsQuery; result: EventsResult };
+  breakdown: { query: BreakdownQuery; result: BreakdownResult };
+  growth: { query: GrowthQuery; result: GrowthResult };
+  activity: { query: ActivityQuery; result: ActivityResult };
   segmentation: { query: SegmentationQuery; result: SegmentationResult };
   funnel: { query: FunnelQuery; result: FunnelResult };
   retention: { query: RetentionQuery; result: RetentionResult };

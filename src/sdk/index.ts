@@ -32,3 +32,7 @@ export {
   type TrackLike,
 } from './plugins';
 export { uuid, createLogger, isBrowser, chunk } from './util';
+export {
+  parseUserAgent, parseCampaign, referrerChannel, referrerHost,
+  CAMPAIGN_KEYS, type ParsedAgent,
+} from './useragent';

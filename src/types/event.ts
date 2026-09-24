@@ -129,8 +129,32 @@ export interface EventContext {
   region?: string;
   city?: string;
   referrer?: string;
+  /** Referrer hostname, for a top-referrers table. */
+  referrer_host?: string;
+  /** Coarse channel: direct, internal, search, social, developer, referral. */
+  referrer_channel?: string;
+
   page_url?: string;
+  /** Path only. `page_url` carries the query string, which is bad for grouping. */
+  page_path?: string;
   page_title?: string;
+
+  /** Parsed from the user agent. */
+  browser?: string;
+  browser_version?: string;
+  device_type?: string;
+
+  /** Viewport and screen, as 'WxH'. */
+  viewport?: string;
+  screen?: string;
+
+  /** Campaign parameters, flattened: utm_source, utm_medium, gclid, ... */
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+
   /** e.g. 'event-analyzer-sdk/0.1.0' */
   library?: string;
   [key: string]: PropertyValue | undefined;

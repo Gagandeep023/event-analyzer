@@ -12,12 +12,15 @@ import { useMeta, type ApiContext, type Fetcher } from './hooks';
 import { ErrorBox, Loading } from './components';
 import { Overview, type Metric } from './pages/Overview';
 import { Events } from './pages/Events';
+import { Audience } from './pages/Audience';
+import { Pages } from './pages/Pages';
 import { Funnels, type FunnelDef } from './pages/Funnels';
 import { Retention } from './pages/Retention';
 import { Live } from './pages/Live';
 import { fmt } from './theme';
 
-export type PageKey = 'overview' | 'events' | 'funnels' | 'retention' | 'live';
+export type PageKey =
+  | 'overview' | 'audience' | 'pages' | 'events' | 'funnels' | 'retention' | 'live';
 
 export type RangeKey = '24h' | '7d' | '30d' | '90d';
 
@@ -30,6 +33,8 @@ const RANGES: ReadonlyArray<{ value: RangeKey; label: string; days: number }> = 
 
 const PAGES: ReadonlyArray<{ key: PageKey; label: string }> = [
   { key: 'overview', label: 'Overview' },
+  { key: 'audience', label: 'Audience' },
+  { key: 'pages', label: 'Pages' },
   { key: 'events', label: 'Events' },
   { key: 'funnels', label: 'Funnels' },
   { key: 'retention', label: 'Retention' },
@@ -62,7 +67,7 @@ export function EventAnalyzerDashboard({
   fetcher,
   tzOffsetMin,
   projectName,
-  pages = ['overview', 'events', 'funnels', 'retention', 'live'],
+  pages = ['overview', 'audience', 'pages', 'events', 'funnels', 'retention', 'live'],
   defaultRange = '7d',
   funnels,
   breakdownBy = { scope: 'context', key: 'site' },
@@ -172,6 +177,13 @@ export function EventAnalyzerDashboard({
           />
         ) : null}
 
+        {page === 'audience' ? <Audience api={api} range={range} tzOffsetMin={offset} /> : null}
+
+        {page === 'pages' ? (
+          <Pages api={api} range={range} tzOffsetMin={offset}
+                 pageEvent={eventTypes.find((t) => /page|view/i.test(t)) ?? null} />
+        ) : null}
+
         {page === 'events' ? <Events api={api} range={range} tzOffsetMin={offset} /> : null}
 
         {page === 'funnels' ? (
@@ -190,6 +202,8 @@ export function EventAnalyzerDashboard({
 
 const SUBTITLES: Record<PageKey, (meta: MetaResponse | null, range: RangeKey) => string> = {
   overview: () => 'How the product is doing, at a glance.',
+  audience: () => 'Who is visiting, on what, and when.',
+  pages: () => 'Where people land and where they came from.',
   events: (meta, range) =>
     `${meta ? fmt(meta.eventTypes.length) : '—'} tracked events · last ${range}`,
   funnels: () => 'Where people progress and where they drop.',

@@ -238,3 +238,22 @@
   .ea-kpi:nth-child(-n+2) { border-bottom: 1px solid var(--ea-border); }
 }
 @media (prefers-reduced-motion: reduce) { .ea * { animation: none !important; transition: none !important; } }
+
+/* ---------- activity grid ---------- */
+.ea-actgrid {
+  display: grid;
+  grid-template-columns: 34px repeat(24, minmax(0, 1fr));
+  gap: 2px;
+  align-items: center;
+}
+.ea-actlab { font-family: var(--ea-mono); font-size: 9.5px; color: var(--ea-faint); text-align: center; }
+.ea-actday { font-family: var(--ea-mono); font-size: 11px; color: var(--ea-muted); }
+.ea-actcell { aspect-ratio: 1; border-radius: 2.5px; min-height: 14px; cursor: default; }
+.ea-actcell.on { outline: 1.5px solid var(--ea-ink); outline-offset: -1px; }
+.ea-actfoot { margin: 12px 0 0; font-size: 12px; color: var(--ea-muted); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 760px) {
+  .ea-actgrid { grid-template-columns: 30px repeat(24, minmax(0, 1fr)); gap: 1px; }
+  .ea-actcell { min-height: 9px; border-radius: 1.5px; }
+  .ea-actlab { font-size: 8px; }
+}

@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@gagandeep023/event-analyzer"><img alt="npm" src="https://img.shields.io/npm/v/@gagandeep023/event-analyzer?color=64ffda&label=npm"></a>
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20deps-0-64ffda">
-  <img alt="tests" src="https://img.shields.io/badge/tests-376-64ffda">
+  <img alt="tests" src="https://img.shields.io/badge/tests-440-64ffda">
   <img alt="types" src="https://img.shields.io/badge/types-included-64ffda">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-64ffda">
 </p>
@@ -48,8 +48,9 @@ server in exchange. This gives you the tooling and keeps the data on disk.
 ```
   ./sdk        capture      browser + node, batching, retry, offline queue
   ./backend    collect      express router, validation, pluggable storage
-  ./core       analyse      funnel, retention, cohort, sessions, events, segments
-  ./frontend   render       react dashboard: 5 pages, SVG charts, no chart lib
+  ./core       analyse      9 analyses: funnels, retention, cohorts, sessions,
+                            events, segments, breakdowns, growth, activity
+  ./frontend   render       react dashboard: 7 pages, SVG charts, no chart lib
 ```
 
 ### Capture
@@ -120,6 +121,24 @@ import '@gagandeep023/event-analyzer/frontend/styles.css';
 ```
 
 ---
+
+## What you actually get to look at
+
+Seven dashboard pages, all from the same event stream:
+
+| Page | Answers |
+|---|---|
+| **Overview** | Is the product healthy, and where is the biggest drop-off |
+| **Audience** | Who is visiting: browser, OS, device, language, and *when* they are here |
+| **Pages** | Top paths, traffic channels, referrers, campaigns |
+| **Events** | Every event type with counts, unique users, share and change |
+| **Funnels** | Step conversion, drop-off, median time per hop, three ordering modes |
+| **Retention** | Three measures, cohort grid, plus growth accounting |
+| **Live** | Throughput and the raw feed as the collector receives it |
+
+The SDK parses browser, OS and device from the user agent at capture time, pulls
+UTM parameters off the URL, and classifies the referrer into a channel, so those
+breakdowns work without any extra configuration.
 
 ## Three things most reimplementations get wrong
 

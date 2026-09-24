@@ -10,7 +10,7 @@
  * SVG, so there is no charting library to install.
  */
 
-export const FRONTEND_VERSION = '0.3.0';
+export const FRONTEND_VERSION = '0.4.0';
 
 export {
   EventAnalyzerDashboard,
@@ -21,12 +21,14 @@ export {
 
 export { Overview, type Metric, type OverviewProps } from './pages/Overview';
 export { Events } from './pages/Events';
+export { Audience, BreakdownTable } from './pages/Audience';
+export { Pages } from './pages/Pages';
 export { Funnels, type FunnelDef } from './pages/Funnels';
 export { Retention } from './pages/Retention';
 export { Live } from './pages/Live';
 
-export { TimeSeries, Donut, BarList, BarChart, Heatmap } from './charts';
-export type { TimeSeriesProps, DonutProps, DonutSlice, BarDatum } from './charts';
+export { TimeSeries, Donut, BarList, BarChart, Heatmap, ActivityGrid, StackedBars } from './charts';
+export type { TimeSeriesProps, DonutProps, DonutSlice, BarDatum, GrowthBar } from './charts';
 
 export { Panel, Segmented, Delta, Empty, Loading, ErrorBox, Async } from './components';
 

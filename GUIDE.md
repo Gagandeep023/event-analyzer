@@ -147,6 +147,9 @@ missing, but it cannot supply one for you.
 | `POST` | `/query/cohort` | Users matching a behavioural definition |
 | `POST` | `/query/sessions` | Session stats and stickiness |
 | `POST` | `/query/events` | Per-event counts, unique users, last seen |
+| `POST` | `/query/breakdown` | Top values of any property: pages, browsers, referrers |
+| `POST` | `/query/growth` | New / returning / resurrected / churned per period |
+| `POST` | `/query/activity` | Day-of-week by hour-of-day activity matrix |
 | `GET` | `/meta` | Discovered event types and property keys |
 | `GET` | `/export` | Raw events as NDJSON |
 | `GET` | `/stream` | Live feed over SSE |

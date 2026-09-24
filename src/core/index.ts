@@ -75,6 +75,9 @@ export { funnel, MAX_FUNNEL_ATTEMPTS } from './funnel';
 export { retention } from './retention';
 export { buildCohort } from './cohort';
 export { eventStats, DEFAULT_EVENT_LIMIT } from './events';
+export { breakdown, DEFAULT_BREAKDOWN_LIMIT, OTHER_ROW, UNKNOWN_VALUE } from './breakdown';
+export { growth, retentionRatio, DEFAULT_DORMANT_AFTER } from './growth';
+export { activity, DAY_LABELS } from './activity';
 export {
   deriveSessions,
   sessionStats,

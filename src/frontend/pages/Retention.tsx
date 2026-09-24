@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import type { RetentionMeasure, RetentionQuery, RetentionResult, TimeRange } from '../../types';
+import type {
+  GrowthResult, RetentionMeasure, RetentionQuery, RetentionResult, TimeRange,
+} from '../../types';
 import { useQuery, type ApiContext } from '../hooks';
 import { Async, Panel, Segmented } from '../components';
-import { Heatmap, TimeSeries } from '../charts';
-import { pct } from '../theme';
+import { Heatmap, StackedBars, TimeSeries } from '../charts';
+import { fmt, pct } from '../theme';
 
 const MEASURES: ReadonlyArray<{ value: RetentionMeasure; label: string }> = [
   { value: 'unbounded', label: 'Unbounded' },
@@ -46,6 +48,9 @@ export function Retention({
 
   const state = useQuery<RetentionResult>(api, 'retention', body ?? {}, body !== null);
 
+  const growthState = useQuery<GrowthResult>(api, 'growth', useMemo(
+    () => ({ interval, range, tzOffsetMin }), [interval, range, tzOffsetMin]));
+
   if (!startEvent) {
     return <Panel title="Retention"><p className="ea-empty">No events yet.</p></Panel>;
   }
@@ -78,6 +83,41 @@ export function Retention({
                 name="Retention"
               />
             )}
+          </Async>
+        </Panel>
+      </div>
+
+      <div className="ea-section">
+        <Panel
+          title="Growth accounting"
+          aside={
+            growthState.data ? (
+              <span>
+                {fmt(growthState.data.totals.newUsers)} new ·{' '}
+                {fmt(growthState.data.totals.resurrected)} back ·{' '}
+                {fmt(Math.abs(growthState.data.totals.churned))} lost
+                {growthState.data.quickRatio !== null
+                  ? ` · quick ratio ${growthState.data.quickRatio.toFixed(2)}`
+                  : ''}
+              </span>
+            ) : null
+          }
+        >
+          <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--ea-muted)' }}>
+            A flat active-user count can hide heavy churn masked by heavy acquisition.
+            This splits each period by where its users came from.
+          </p>
+          <Async state={growthState} height={220}>
+            {(d) => d.points.length === 0
+              ? <p className="ea-empty">No activity in this range.</p>
+              : <StackedBars data={d.points.map((p) => ({
+                  label: p.label,
+                  newUsers: p.newUsers,
+                  returning: p.returning,
+                  resurrected: p.resurrected,
+                  churned: p.churned,
+                  active: p.active,
+                }))} />}
           </Async>
         </Panel>
       </div>
