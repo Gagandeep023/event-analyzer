@@ -1,0 +1,118 @@
+{
+  "name": "@gagandeep023/event-analyzer",
+  "version": "0.1.0",
+  "description": "Self-hosted product analytics: event capture SDK, Express ingestion, zero-dependency funnel/retention/cohort engine, and a React dashboard",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.mjs",
+      "require": "./dist/core/index.js"
+    },
+    "./sdk": {
+      "types": "./dist/sdk/index.d.ts",
+      "import": "./dist/sdk/index.mjs",
+      "require": "./dist/sdk/index.js"
+    },
+    "./backend": {
+      "types": "./dist/backend/index.d.ts",
+      "import": "./dist/backend/index.mjs",
+      "require": "./dist/backend/index.js"
+    },
+    "./frontend": {
+      "types": "./dist/frontend/index.d.ts",
+      "import": "./dist/frontend/index.mjs",
+      "require": "./dist/frontend/index.js"
+    },
+    "./frontend/styles.css": "./dist/frontend/EventAnalyzerDashboard.css",
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.mjs",
+      "require": "./dist/types/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "GUIDE.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "analytics",
+    "product-analytics",
+    "event-tracking",
+    "funnel",
+    "retention",
+    "cohort",
+    "self-hosted",
+    "amplitude",
+    "express",
+    "react",
+    "typescript",
+    "zero-dependency"
+  ],
+  "author": "Gagandeep Bhatia <gagandeepbhatia2303@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gagandeep023/event-analyzer.git"
+  },
+  "homepage": "https://github.com/Gagandeep023/event-analyzer#readme",
+  "bugs": {
+    "url": "https://github.com/Gagandeep023/event-analyzer/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "express": "^4.0.0 || ^5.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "recharts": "^2.0.0 || ^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "recharts": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "eslint": "^10.0.1",
+    "express": "^5.1.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "recharts": "^3.7.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "4.0.18"
+  }
+}

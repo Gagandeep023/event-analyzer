@@ -187,6 +187,18 @@ Build script copies the stylesheet, matching the `api-gateway` pattern:
 }
 ```
 
+### Pinned dependency: vitest
+
+`vitest` is pinned to an **exact** `4.0.18` rather than `^4.0.18`.
+
+The caret range resolves to 4.1.11, whose optional peer chain through
+`@vitest/browser-playwright` triggers a null-dereference bug in npm 10.9.4's
+arborist (`Cannot read properties of null (reading 'edgesOut')`), and the install
+fails outright. 4.0.18 is the version proven working in `api-gateway`.
+
+Revisit when npm or vitest ships a fix. Leave a comment on the pin so it is not
+silently widened back to a caret.
+
 ### .npmignore
 
 ```

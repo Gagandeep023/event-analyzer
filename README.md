@@ -4,7 +4,7 @@ Self-hosted product analytics as an npm package. Event capture SDK, Express inge
 
 Modelled on Amplitude's documented semantics, built from scratch, with no runtime dependencies.
 
-> **Status: planning.** No code written yet. The complete design lives in [`docs/`](docs/). Build starts at [phase 1](docs/10-build-plan.md#phase-1-scaffold-and-types).
+> **Status: phase 1 complete.** Scaffold and type contract are in place and building. The analysis engine lands in [phase 2](docs/10-build-plan.md#phase-2-the-analysis-engine). Complete design in [`docs/`](docs/).
 
 ## What it will do
 

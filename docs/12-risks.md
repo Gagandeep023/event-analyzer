@@ -68,15 +68,16 @@ The cost is a compatibility shim in the validator and a second shape to keep wor
 
 **Decide before:** `validate.ts` is written, in phase 4.
 
-### 2. Does the root `.` export re-export `core`, or stay empty?
+### 2. ~~Does the root `.` export re-export `core`, or stay empty?~~ CLOSED
 
-Re-exporting is friendlier for a first-time user who writes `import { funnel } from '@gagandeep023/event-analyzer'` and expects it to work.
+**Resolved in phase 1: re-export `types` and `core` only.**
 
-Staying empty keeps the subpaths honest and the bundle smaller for frontend-only consumers, who would otherwise pull the analysis engine into a browser bundle that never uses it.
+`backend` and `frontend` carry peer dependencies, so pulling them into the root
+export would ask a consumer who installed neither to resolve express or react.
+They stay reachable only through their own subpaths.
 
-**Current lean:** re-export `core` and `types` only, never `backend` or `frontend`. Those two have peer dependencies and pulling them into the root export would break a consumer who installed neither.
-
-**Decide before:** phase 1 ends, since it is part of the build configuration.
+Verified against a real consumer install: all six subpaths resolve under both
+`require()` and `import()`.
 
 ### 3. SQLite in v0.2 as a peer dependency or a separate package?
 
@@ -109,4 +110,5 @@ Recorded so they are not relitigated mid-build.
 | Funnel mode vocabulary | Amplitude's exact words: `ordered`, `unordered`, `sequential` |
 | Retention measures | All three shipped in v0.1, with the `incomplete` flag |
 | Autocapture defaults | Everything off |
+| Root export surface | `types` and `core` only, never `backend` or `frontend` |
 | Portfolio integration | Separate work, after publish, against the tarball |

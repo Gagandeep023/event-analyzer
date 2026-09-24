@@ -1,0 +1,11 @@
+src/
+docs/
+examples/
+tsconfig.json
+tsup.config.ts
+eslint.config.mjs
+vitest.config.ts
+*.test.ts
+.github/
+coverage/
+.DS_Store
