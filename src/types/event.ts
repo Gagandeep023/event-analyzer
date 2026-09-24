@@ -84,9 +84,18 @@ export const IDENTIFY_MERGE_ORDER: readonly IdentifyOperation[] = Object.freeze(
 /**
  * User properties. Keys are either `$` operations carrying a property map, or
  * bare property names, which are treated as `$set`.
+ *
+ * `$clearAll` is the exception: it carries a sentinel value rather than a map,
+ * because it takes no per-property argument. Amplitude conventionally sends
+ * `"-"`. The value is ignored; only the key's presence matters.
  */
 export type UserProperties = {
-  [K in IdentifyOperation]?: Record<string, PropertyValue>;
+  [K in Exclude<IdentifyOperation, IdentifyOperation.CLEAR_ALL>]?: Record<
+    string,
+    PropertyValue
+  >;
+} & {
+  [IdentifyOperation.CLEAR_ALL]?: PropertyValue;
 } & {
   [key: string]: PropertyValue | Record<string, PropertyValue> | undefined;
 };
