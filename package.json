@@ -43,7 +43,7 @@
     "GUIDE.md"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && cp src/frontend/EventAnalyzerDashboard.css dist/frontend/EventAnalyzerDashboard.css",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",

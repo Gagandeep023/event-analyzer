@@ -4,7 +4,12 @@ Self-hosted product analytics as an npm package. Event capture SDK, Express inge
 
 Modelled on Amplitude's documented semantics, built from scratch, with no runtime dependencies.
 
-> **Status: phase 1 complete.** Scaffold and type contract are in place and building. The analysis engine lands in [phase 2](docs/10-build-plan.md#phase-2-the-analysis-engine). Complete design in [`docs/`](docs/).
+> **Status: v0.1.0 built, not yet published.** All five phases complete: 376 tests green, six entry points building, runnable demo. See [`GUIDE.md`](GUIDE.md) for usage and [`docs/`](docs/) for the design.
+
+```bash
+git clone https://github.com/Gagandeep023/event-analyzer.git
+cd event-analyzer && npm i && npm run demo
+```
 
 ## What it will do
 
@@ -30,7 +35,7 @@ import { EventAnalyzerDashboard } from '@gagandeep023/event-analyzer/frontend';
 <EventAnalyzerDashboard baseUrl="/api/events" />
 ```
 
-## Documentation
+## Design documentation
 
 | # | Document | Covers |
 |---|---|---|
@@ -46,6 +51,8 @@ import { EventAnalyzerDashboard } from '@gagandeep023/event-analyzer/frontend';
 | 10 | [Build plan](docs/10-build-plan.md) | Five phases with done criteria |
 | 11 | [Test plan](docs/11-test-plan.md) | ~130 specs and two invariants |
 | 12 | [Risks and open questions](docs/12-risks.md) | Known weaknesses, decisions outstanding |
+
+Usage documentation lives in [`GUIDE.md`](GUIDE.md), which ships in the published tarball.
 
 ## Design in one paragraph
 

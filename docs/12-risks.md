@@ -58,7 +58,17 @@ v0.1 caps export ranges and documents the cap. A streaming `EventStore.scan()` m
 
 These need answering before or during phase 1, because they affect the type contract and are expensive to change later.
 
-### 1. Does `/collect` accept Amplitude's exact payload shape as an alias?
+### 1. ~~Does `/collect` accept Amplitude's exact payload shape as an alias?~~ CLOSED
+
+**Resolved in phase 4: yes, behind `amplitudeCompat`, defaulting to `false`.**
+
+`normalizeAmplitudeEvent` folds flat device and geo fields into `context` and
+`productId` / `revenueType` into `revenue`, then the result goes through the
+ordinary validator. Pointing an existing Amplitude SDK at this URL works.
+
+Original reasoning below.
+
+### 1b. Does `/collect` accept Amplitude's exact payload shape as an alias?
 
 Accepting `{ api_key, events }` with flat device and geo fields would make the package a **drop-in replacement** for any codebase already sending to Amplitude. Point the existing SDK at a different URL and it works.
 
@@ -89,7 +99,13 @@ A peer dependency is simpler for the user but means the main package's README ha
 
 **Decide before:** v0.2 planning. Does not block v0.1.
 
-### 4. Confirm journey paths stay cut from v0.1
+### 4. ~~Confirm journey paths stay cut from v0.1~~ CLOSED
+
+**Cut, as planned.** v0.1 ships five analyses: segmentation, funnel, retention,
+cohort and sessions. Paths are revisited in v0.2 alongside whether to take a
+charting dependency capable of a Sankey.
+
+### 4b. Original note
 
 Path trees are the most implementation work for the least demo payoff, and rendering them well needs a Sankey that Recharts does not ship.
 
@@ -111,4 +127,7 @@ Recorded so they are not relitigated mid-build.
 | Retention measures | All three shipped in v0.1, with the `incomplete` flag |
 | Autocapture defaults | Everything off |
 | Root export surface | `types` and `core` only, never `backend` or `frontend` |
+| Amplitude payload compatibility | Accepted behind `amplitudeCompat`, off by default |
+| Express dependency | Injected into the router factory, never imported |
+| Duplicate-only batches | Return 200 with `events_ingested: 0`, not 400 |
 | Portfolio integration | Separate work, after publish, against the tarball |
