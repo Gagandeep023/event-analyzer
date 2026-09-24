@@ -252,7 +252,7 @@ Concurrent limit: 5 concurrent requests across all REST endpoints, or 1,000 cost
 
 Every query endpoint composes from the same three parameters. This is the cleanest idea in the API.
 
-**`e`:** an event, with optional filters and group-by**
+**`e`:** an event, with optional filters and group-by
 
 ```json
 {
@@ -273,14 +273,14 @@ Every query endpoint composes from the same three parameters. This is the cleane
 
 Filter operators: `is`, `is not`, `contains`, `does not contain`, `less`, `less or equal`, `greater`, `greater or equal`, `set is`, `set is not`.
 
-**`s`:** segment definitions, a user-level filter**
+**`s`:** segment definitions, a user-level filter
 
 ```json
 [ { "prop": "country",  "op": "is", "values": ["United States"] },
   { "prop": "gp:gender","op": "is", "values": ["female"] } ]
 ```
 
-**`s`:** the "who performed" behavioural variant**
+**`s`:** the "who performed" behavioural variant
 
 ```json
 [ { "type": "event",
@@ -293,7 +293,7 @@ Filter operators: `is`, `is not`, `contains`, `does not contain`, `less`, `less 
 
 `time_type` is one of `forEachInterval`, `currentInterval`, `allTime`. Behavioral cohorts are referenced as a segment with `"prop": "userdata_cohort"` and the cohort id as the value.
 
-**`g`:** the property to group by.** Available only when there is a single segment. Maximum two.
+**`g`:** the property to group by. Available only when there is a single segment. Maximum two.
 
 ### 3.4 Reserved values
 
