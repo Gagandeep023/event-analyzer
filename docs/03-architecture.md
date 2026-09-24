@@ -109,7 +109,8 @@ Five entry points plus a stylesheet.
       "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.mjs",
       "require": "./dist/types/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": ["dist", "GUIDE.md"],
   "dependencies": {},

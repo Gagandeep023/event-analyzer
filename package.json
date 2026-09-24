@@ -1,6 +1,6 @@
 {
   "name": "@gagandeep023/event-analyzer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Self-hosted product analytics: event capture SDK, Express ingestion, zero-dependency funnel/retention/cohort engine, and a React dashboard",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -36,7 +36,8 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.mjs",
       "require": "./dist/types/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
