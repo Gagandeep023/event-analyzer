@@ -12,7 +12,7 @@
  * rather than per chart.
  */
 
-export const CORE_VERSION = '0.1.0';
+export const CORE_VERSION = '0.5.1';
 
 // Predicates and property access
 export {

@@ -4,7 +4,7 @@ import type { EventContext } from '../types';
 import { isBrowser } from './util';
 import { parseCampaign, parseUserAgent, referrerChannel, referrerHost } from './useragent';
 
-export const SDK_VERSION = '0.1.0';
+export const SDK_VERSION = '0.5.1';
 export const SDK_LIBRARY = `event-analyzer-sdk/${SDK_VERSION}`;
 
 /** Ambient context for the current host. Never throws. */
