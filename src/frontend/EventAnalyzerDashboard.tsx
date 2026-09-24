@@ -14,13 +14,14 @@ import { Overview, type Metric } from './pages/Overview';
 import { Events } from './pages/Events';
 import { Audience } from './pages/Audience';
 import { Pages } from './pages/Pages';
+import { Clicks } from './pages/Clicks';
 import { Funnels, type FunnelDef } from './pages/Funnels';
 import { Retention } from './pages/Retention';
 import { Live } from './pages/Live';
 import { fmt } from './theme';
 
 export type PageKey =
-  | 'overview' | 'audience' | 'pages' | 'events' | 'funnels' | 'retention' | 'live';
+  | 'overview' | 'audience' | 'pages' | 'clicks' | 'events' | 'funnels' | 'retention' | 'live';
 
 export type RangeKey = '24h' | '7d' | '30d' | '90d';
 
@@ -35,6 +36,7 @@ const PAGES: ReadonlyArray<{ key: PageKey; label: string }> = [
   { key: 'overview', label: 'Overview' },
   { key: 'audience', label: 'Audience' },
   { key: 'pages', label: 'Pages' },
+  { key: 'clicks', label: 'Clicks' },
   { key: 'events', label: 'Events' },
   { key: 'funnels', label: 'Funnels' },
   { key: 'retention', label: 'Retention' },
@@ -67,7 +69,7 @@ export function EventAnalyzerDashboard({
   fetcher,
   tzOffsetMin,
   projectName,
-  pages = ['overview', 'audience', 'pages', 'events', 'funnels', 'retention', 'live'],
+  pages = ['overview', 'audience', 'pages', 'clicks', 'events', 'funnels', 'retention', 'live'],
   defaultRange = '7d',
   funnels,
   breakdownBy = { scope: 'context', key: 'site' },
@@ -184,6 +186,8 @@ export function EventAnalyzerDashboard({
                  pageEvent={eventTypes.find((t) => /page|view/i.test(t)) ?? null} />
         ) : null}
 
+        {page === 'clicks' ? <Clicks api={api} range={range} tzOffsetMin={offset} /> : null}
+
         {page === 'events' ? <Events api={api} range={range} tzOffsetMin={offset} /> : null}
 
         {page === 'funnels' ? (
@@ -204,6 +208,7 @@ const SUBTITLES: Record<PageKey, (meta: MetaResponse | null, range: RangeKey) =>
   overview: () => 'How the product is doing, at a glance.',
   audience: () => 'Who is visiting, on what, and when.',
   pages: () => 'Where people land and where they came from.',
+  clicks: () => 'What people press, and where it takes them.',
   events: (meta, range) =>
     `${meta ? fmt(meta.eventTypes.length) : '—'} tracked events · last ${range}`,
   funnels: () => 'Where people progress and where they drop.',

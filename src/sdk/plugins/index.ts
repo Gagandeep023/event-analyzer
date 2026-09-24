@@ -137,6 +137,26 @@ export function clicksPlugin(client: TrackLike, options: ClickAutocaptureOptions
         const text = (matched.el.textContent ?? '').trim();
         if (text) props.text = text.slice(0, maxText);
 
+        // Destination, for links. Without this a click report can say a button
+        // labelled "Read more" was pressed 400 times but not where any of them
+        // went, which is the part anyone actually wants.
+        const href = matched.el.getAttribute('href');
+        if (href) {
+          props.href = href.slice(0, 300);
+          try {
+            const url = new URL(href, location.href);
+            props.href_host = url.hostname.replace(/^www\./, '');
+            props.external = url.hostname !== location.hostname;
+            if (url.protocol === 'mailto:' || url.protocol === 'tel:') {
+              props.href_kind = url.protocol.replace(':', '');
+            } else if (/\.(pdf|zip|csv|png|jpe?g|svg|mp4|dmg|exe)$/i.test(url.pathname)) {
+              props.href_kind = 'download';
+            }
+          } catch {
+            // A relative or malformed href still records the raw value above.
+          }
+        }
+
         for (const attr of Array.from(matched.el.attributes)) {
           if (attr.name.startsWith('data-ea-')) {
             props[attr.name.replace('data-ea-', '')] = attr.value;

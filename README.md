@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@gagandeep023/event-analyzer"><img alt="npm" src="https://img.shields.io/npm/v/@gagandeep023/event-analyzer?color=64ffda&label=npm"></a>
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20deps-0-64ffda">
-  <img alt="tests" src="https://img.shields.io/badge/tests-440-64ffda">
+  <img alt="tests" src="https://img.shields.io/badge/tests-452-64ffda">
   <img alt="types" src="https://img.shields.io/badge/types-included-64ffda">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-64ffda">
 </p>
@@ -50,7 +50,7 @@ server in exchange. This gives you the tooling and keeps the data on disk.
   ./backend    collect      express router, validation, pluggable storage
   ./core       analyse      9 analyses: funnels, retention, cohorts, sessions,
                             events, segments, breakdowns, growth, activity
-  ./frontend   render       react dashboard: 7 pages, SVG charts, no chart lib
+  ./frontend   render       react dashboard: 8 pages, SVG charts, no chart lib
 ```
 
 ### Capture
@@ -124,13 +124,14 @@ import '@gagandeep023/event-analyzer/frontend/styles.css';
 
 ## What you actually get to look at
 
-Seven dashboard pages, all from the same event stream:
+Eight dashboard pages, all from the same event stream:
 
 | Page | Answers |
 |---|---|
 | **Overview** | Is the product healthy, and where is the biggest drop-off |
 | **Audience** | Who is visiting: browser, OS, device, language, and *when* they are here |
 | **Pages** | Top paths, traffic channels, referrers, campaigns |
+| **Clicks** | What people press, where it takes them, and from which page |
 | **Events** | Every event type with counts, unique users, share and change |
 | **Funnels** | Step conversion, drop-off, median time per hop, three ordering modes |
 | **Retention** | Three measures, cohort grid, plus growth accounting |

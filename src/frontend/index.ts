@@ -10,7 +10,7 @@
  * SVG, so there is no charting library to install.
  */
 
-export const FRONTEND_VERSION = '0.4.0';
+export const FRONTEND_VERSION = '0.5.0';
 
 export {
   EventAnalyzerDashboard,
@@ -23,6 +23,7 @@ export { Overview, type Metric, type OverviewProps } from './pages/Overview';
 export { Events } from './pages/Events';
 export { Audience, BreakdownTable } from './pages/Audience';
 export { Pages } from './pages/Pages';
+export { Clicks } from './pages/Clicks';
 export { Funnels, type FunnelDef } from './pages/Funnels';
 export { Retention } from './pages/Retention';
 export { Live } from './pages/Live';
