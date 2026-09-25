@@ -8,15 +8,40 @@
 
 import React, { useMemo, useState } from 'react';
 import type { BreakdownResult, PropertyRef, TimeRange } from '../../types';
-import { useQuery, type ApiContext } from '../hooks';
+import { useMeta, useQuery, type ApiContext } from '../hooks';
 import { Async, Delta, Panel, Segmented } from '../components';
 import { Donut } from '../charts';
 import { pct } from '../theme';
 
 const CLICK_EVENT = 'Element Clicked';
 
+/**
+ * Two different empty states that look identical from inside one panel.
+ *
+ * `captured` is whether the collector has EVER seen a click event, which is the
+ * only way the dashboard can tell "capture is not switched on" from "capture is
+ * on and this window is quiet". Telling someone to enable an option they have
+ * already enabled sends them looking for a bug that is not there.
+ */
+function NoClicks({ captured }: { captured: boolean | null }) {
+  if (captured === false) {
+    return (
+      <p className="ea-empty">
+        No clicks have ever reached the collector. Capture is off until asked for:
+        set <code>autocapture: {'{ clicks: true }'}</code> in the SDK on your site.
+      </p>
+    );
+  }
+  return (
+    <p className="ea-empty">
+      No clicks recorded in this range. Try a wider window, or check that the site
+      sending them has been deployed since capture was switched on.
+    </p>
+  );
+}
+
 function ClickTable({
-  api, range, tzOffsetMin, property, heading, rankBy, filterNotSet = true, mono = true,
+  api, range, tzOffsetMin, property, heading, rankBy, captured, filterNotSet = true, mono = true,
 }: {
   api: ApiContext;
   range: TimeRange;
@@ -24,6 +49,7 @@ function ClickTable({
   property: PropertyRef;
   heading: string;
   rankBy: 'users' | 'events';
+  captured: boolean | null;
   filterNotSet?: boolean;
   mono?: boolean;
 }) {
@@ -43,14 +69,7 @@ function ClickTable({
     <Async state={state} height={180}>
       {(d) => {
         const rows = filterNotSet ? d.rows.filter((r) => r.value !== '(not set)') : d.rows;
-        if (rows.length === 0) {
-          return (
-            <p className="ea-empty">
-              Nothing recorded yet. Click capture needs{' '}
-              <code>autocapture: {'{ clicks: true }'}</code> on the site.
-            </p>
-          );
-        }
+        if (rows.length === 0) return <NoClicks captured={captured} />;
         return (
           <table className="ea-table">
             <thead>
@@ -92,13 +111,20 @@ export function Clicks({
 }: { api: ApiContext; range: TimeRange; tzOffsetMin: number }): React.ReactElement {
   const [rankBy, setRankBy] = useState<'events' | 'users'>('events');
 
+  // null while /meta is in flight, so a slow load never accuses the caller of
+  // a misconfiguration it has not confirmed.
+  const meta = useMeta(api);
+  const captured = meta.data
+    ? meta.data.eventTypes.some((e) => e.event_type === CLICK_EVENT)
+    : null;
+
   const internalVsExternal = useQuery<BreakdownResult>(api, 'breakdown', useMemo(() => ({
     property: { scope: 'event', key: 'external' },
     event: { event_type: CLICK_EVENT },
     range, tzOffsetMin, limit: 4, rankBy: 'events',
   }), [range, tzOffsetMin]));
 
-  const common = { api, range, tzOffsetMin, rankBy };
+  const common = { api, range, tzOffsetMin, rankBy, captured };
 
   return (
     <>
@@ -134,7 +160,7 @@ export function Clicks({
           <Async state={internalVsExternal} height={160}>
             {(d) => {
               const rows = d.rows.filter((r) => r.value !== '(not set)');
-              if (rows.length === 0) return <p className="ea-empty">No link clicks recorded.</p>;
+              if (rows.length === 0) return <NoClicks captured={captured} />;
               return (
                 <Donut
                   size={140}
