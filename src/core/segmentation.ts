@@ -13,7 +13,7 @@ import type {
   SegmentationResult,
   Series,
 } from '../types';
-import { buildIdentityGraph, type IdentityGraph } from './identity';
+import { buildIdentityGraph, userSetMatcher, type IdentityGraph } from './identity';
 import { matchesAll, matchesStep, resolveProperty, stepLabel } from './filter';
 import { ratio } from './stats';
 import { bucketRange, bucketStart, inRange } from './time';
@@ -84,9 +84,12 @@ export function segmentation(
     q.events.forEach((step, i) => touch(stepLabel(step, i), buckets[0] ?? q.range.from));
   }
 
+  const inSet = userSetMatcher(graph, q.userKeys);
+
   for (const ev of events) {
     const t = ev.time ?? 0;
     if (!inRange(t, q.range)) continue;
+    if (!inSet(ev)) continue;
     if (!matchesAll(ev, q.segment, { allowRegex })) continue;
 
     const userKey = graph.resolve(ev);

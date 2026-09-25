@@ -191,6 +191,23 @@ export function groupByUser(
   return byUser;
 }
 
+/**
+ * A membership test against a set of resolved user keys.
+ *
+ * Built once per analysis rather than per event, and resolved through the
+ * graph rather than read off the event, because a raw `user_id` comparison
+ * would drop a user's pre-login events at exactly the point identity
+ * resolution exists to keep them.
+ */
+export function userSetMatcher(
+  ids: IdentityGraph,
+  userKeys: readonly string[] | undefined,
+): (ev: AnalyticsEvent) => boolean {
+  if (!userKeys || userKeys.length === 0) return () => true;
+  const set = new Set(userKeys);
+  return (ev) => set.has(ids.resolve(ev));
+}
+
 /** Chronological comparator. `event_id` breaks ties on identical timestamps. */
 export function byTime(a: AnalyticsEvent, b: AnalyticsEvent): number {
   const ta = a.time ?? 0;

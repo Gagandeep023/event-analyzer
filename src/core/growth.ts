@@ -8,7 +8,7 @@
  */
 
 import type { AnalyticsEvent, GrowthPoint, GrowthQuery, GrowthResult } from '../types';
-import { buildIdentityGraph, type IdentityGraph } from './identity';
+import { buildIdentityGraph, userSetMatcher, type IdentityGraph } from './identity';
 import { matchesAll, matchesStep } from './filter';
 import { ratio } from './stats';
 import { bucketLabel, bucketRange, bucketStart, inRange } from './time';
@@ -35,8 +35,11 @@ export function growth(
   const activeIn = new Map<string, Set<number>>();
   const firstEver = new Map<string, number>();
 
+  const inSet = userSetMatcher(graph, q.userKeys);
+
   for (const ev of events) {
     const t = ev.time ?? 0;
+    if (!inSet(ev)) continue;
     if (q.event && !matchesStep(ev, q.event, { allowRegex })) continue;
     if (!matchesAll(ev, q.segment, { allowRegex })) continue;
 

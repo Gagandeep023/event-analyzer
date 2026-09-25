@@ -6,7 +6,7 @@
  */
 
 import type { ActivityQuery, ActivityResult, AnalyticsEvent } from '../types';
-import { buildIdentityGraph, type IdentityGraph } from './identity';
+import { buildIdentityGraph, userSetMatcher, type IdentityGraph } from './identity';
 import { matchesAll, matchesStep } from './filter';
 import { MS_PER_MINUTE, inRange } from './time';
 
@@ -28,9 +28,12 @@ export function activity(
     Array.from({ length: 24 }, () => new Set<string>()));
   const totals: number[][] = Array.from({ length: 7 }, () => Array<number>(24).fill(0));
 
+  const inSet = userSetMatcher(graph, q.userKeys);
+
   for (const ev of events) {
     const t = ev.time ?? 0;
     if (!inRange(t, q.range)) continue;
+    if (!inSet(ev)) continue;
     if (q.event && !matchesStep(ev, q.event, { allowRegex })) continue;
     if (!matchesAll(ev, q.segment, { allowRegex })) continue;
 

@@ -10,7 +10,7 @@
 import type {
   AnalyticsEvent, BreakdownQuery, BreakdownResult, BreakdownRow, TimeRange,
 } from '../types';
-import { buildIdentityGraph, type IdentityGraph } from './identity';
+import { buildIdentityGraph, userSetMatcher, type IdentityGraph } from './identity';
 import { matchesAll, matchesStep, resolveProperty } from './filter';
 import { ratio } from './stats';
 import { inRange } from './time';
@@ -33,8 +33,11 @@ function tally(
   const users = new Set<string>();
   let total = 0;
 
+  const inSet = userSetMatcher(ids, q.userKeys);
+
   for (const ev of events) {
     if (!inRange(ev.time ?? 0, range)) continue;
+    if (!inSet(ev)) continue;
     if (q.event && !matchesStep(ev, q.event, { allowRegex })) continue;
     if (!matchesAll(ev, q.segment, { allowRegex })) continue;
 

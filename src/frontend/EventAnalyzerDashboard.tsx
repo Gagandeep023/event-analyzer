@@ -1,7 +1,7 @@
 /**
  * The dashboard shell.
  *
- * Sidebar, header, and five pages. Takes a base URL and a fetch wrapper; knows
+ * Sidebar, header, and nine pages. Takes a base URL and a fetch wrapper; knows
  * nothing about the host application's routing, auth or styling beyond the CSS
  * custom properties it exposes.
  */
@@ -16,12 +16,14 @@ import { Audience } from './pages/Audience';
 import { Pages } from './pages/Pages';
 import { Clicks } from './pages/Clicks';
 import { Funnels, type FunnelDef } from './pages/Funnels';
+import { Cohorts } from './pages/Cohorts';
 import { Retention } from './pages/Retention';
 import { Live } from './pages/Live';
 import { fmt } from './theme';
 
 export type PageKey =
-  | 'overview' | 'audience' | 'pages' | 'clicks' | 'events' | 'funnels' | 'retention' | 'live';
+  | 'overview' | 'audience' | 'pages' | 'clicks' | 'events'
+  | 'funnels' | 'cohorts' | 'retention' | 'live';
 
 export type RangeKey = '24h' | '7d' | '30d' | '90d';
 
@@ -39,6 +41,7 @@ const PAGES: ReadonlyArray<{ key: PageKey; label: string }> = [
   { key: 'clicks', label: 'Clicks' },
   { key: 'events', label: 'Events' },
   { key: 'funnels', label: 'Funnels' },
+  { key: 'cohorts', label: 'Cohorts' },
   { key: 'retention', label: 'Retention' },
   { key: 'live', label: 'Live' },
 ];
@@ -69,7 +72,10 @@ export function EventAnalyzerDashboard({
   fetcher,
   tzOffsetMin,
   projectName,
-  pages = ['overview', 'audience', 'pages', 'clicks', 'events', 'funnels', 'retention', 'live'],
+  pages = [
+    'overview', 'audience', 'pages', 'clicks', 'events',
+    'funnels', 'cohorts', 'retention', 'live',
+  ],
   defaultRange = '7d',
   funnels,
   breakdownBy = { scope: 'context', key: 'site' },
@@ -194,6 +200,10 @@ export function EventAnalyzerDashboard({
           <Funnels api={api} range={range} tzOffsetMin={offset} funnels={resolvedFunnels} />
         ) : null}
 
+        {page === 'cohorts' ? (
+          <Cohorts api={api} range={range} tzOffsetMin={offset} eventTypes={eventTypes} />
+        ) : null}
+
         {page === 'retention' ? (
           <Retention api={api} range={range} tzOffsetMin={offset} startEvent={eventTypes[0] ?? null} />
         ) : null}
@@ -209,6 +219,7 @@ const SUBTITLES: Record<PageKey, (meta: MetaResponse | null, range: RangeKey) =>
   audience: () => 'Who is visiting, on what, and when.',
   pages: () => 'Where people land and where they came from.',
   clicks: () => 'What people press, and where it takes them.',
+  cohorts: () => 'Define a group by what they did, then see what they do differently.',
   events: (meta, range) =>
     `${meta ? fmt(meta.eventTypes.length) : '—'} tracked events · last ${range}`,
   funnels: () => 'Where people progress and where they drop.',

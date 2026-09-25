@@ -20,7 +20,7 @@ import type {
   PropertyRef,
   StepSpec,
 } from '../types';
-import { buildIdentityGraph, groupByUser, type IdentityGraph } from './identity';
+import { buildIdentityGraph, groupByUser, userSetMatcher, type IdentityGraph } from './identity';
 import { matchesAll, matchesStep, resolveProperty, stepLabel } from './filter';
 import { ascending, percentile, ratio } from './stats';
 import { inRange } from './time';
@@ -57,7 +57,8 @@ export function funnel(
 
   if (q.steps.length === 0) return emptyResult(q);
 
-  const scoped = events.filter((ev) => inRange(ev.time ?? 0, q.range));
+  const inSet = userSetMatcher(graph, q.userKeys);
+  const scoped = events.filter((ev) => inRange(ev.time ?? 0, q.range) && inSet(ev));
   const byUser = groupByUser(scoped, graph);
 
   if (!q.groupBy) {

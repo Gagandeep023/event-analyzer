@@ -6,7 +6,7 @@
  */
 
 import type { AnalyticsEvent, CohortQuery, CohortResult } from '../types';
-import { buildIdentityGraph, groupByUser, type IdentityGraph } from './identity';
+import { buildIdentityGraph, groupByUser, userSetMatcher, type IdentityGraph } from './identity';
 import { matchesAll, matchesStep } from './filter';
 import { asPropertyCarrier, latestUserProperties } from './properties';
 import { ratio } from './stats';
@@ -21,7 +21,8 @@ export function buildCohort(
   const graph = ids ?? buildIdentityGraph(events);
   const allowRegex = opts.allowRegex === true;
 
-  const scoped = events.filter((ev) => inRange(ev.time ?? 0, q.range));
+  const inSet = userSetMatcher(graph, q.userKeys);
+  const scoped = events.filter((ev) => inRange(ev.time ?? 0, q.range) && inSet(ev));
   const byUser = groupByUser(scoped, graph);
   const props = q.userFilters?.length ? latestUserProperties(scoped, graph) : null;
 

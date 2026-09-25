@@ -19,7 +19,7 @@ import type {
   TimeRange,
 } from '../types';
 import { MAX_SESSION_MS, SESSION_BIN_EDGES } from '../types';
-import { buildIdentityGraph, byTime, groupByUser, type IdentityGraph } from './identity';
+import { buildIdentityGraph, byTime, groupByUser, userSetMatcher, type IdentityGraph } from './identity';
 import { matchesAll } from './filter';
 import { ascending, histogram, mean, percentile, ratio } from './stats';
 import { MS_PER_DAY, bucketStart, inRange } from './time';
@@ -152,8 +152,11 @@ export function sessionStats(
   const graph = ids ?? buildIdentityGraph(events);
   const allowRegex = opts.allowRegex === true;
 
+  const inSet = userSetMatcher(graph, q.userKeys);
   const scoped = events.filter(
-    (ev) => inRange(ev.time ?? 0, q.range) && matchesAll(ev, q.segment, { allowRegex }),
+    (ev) => inRange(ev.time ?? 0, q.range)
+      && inSet(ev)
+      && matchesAll(ev, q.segment, { allowRegex }),
   );
 
   const sessions = deriveSessions(scoped, graph, opts);

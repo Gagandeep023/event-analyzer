@@ -7,7 +7,7 @@
  */
 
 import type { AnalyticsEvent, EventsQuery, EventsResult, EventStat, TimeRange } from '../types';
-import { buildIdentityGraph, type IdentityGraph } from './identity';
+import { buildIdentityGraph, userSetMatcher, type IdentityGraph } from './identity';
 import { matchesAll } from './filter';
 import { ratio } from './stats';
 import { inRange } from './time';
@@ -27,14 +27,18 @@ function tally(
   ids: IdentityGraph,
   segment: EventsQuery['segment'],
   allowRegex: boolean,
+  userKeys?: readonly string[],
 ): { byType: Map<string, Bucket>; total: number; users: Set<string> } {
   const byType = new Map<string, Bucket>();
   const users = new Set<string>();
   let total = 0;
 
+  const inSet = userSetMatcher(ids, userKeys);
+
   for (const ev of events) {
     const t = ev.time ?? 0;
     if (!inRange(t, range)) continue;
+    if (!inSet(ev)) continue;
     if (!matchesAll(ev, segment, { allowRegex })) continue;
 
     total += 1;
@@ -65,7 +69,7 @@ export function eventStats(
   const allowRegex = opts.allowRegex === true;
   const limit = q.limit ?? DEFAULT_EVENT_LIMIT;
 
-  const current = tally(events, q.range, graph, q.segment, allowRegex);
+  const current = tally(events, q.range, graph, q.segment, allowRegex, q.userKeys);
 
   // The preceding window of equal length, for the change column.
   let prior: Map<string, Bucket> | null = null;
@@ -77,6 +81,7 @@ export function eventStats(
       graph,
       q.segment,
       allowRegex,
+      q.userKeys,
     ).byType;
   }
 

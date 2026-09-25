@@ -24,7 +24,7 @@ function fetcherWith(eventTypes: string[]): typeof fetch {
   }) as unknown as typeof fetch;
 }
 
-const range = { start: 0, end: 86_400_000 };
+const range = { from: 0, to: 86_400_000 };
 
 beforeEach(() => {
   (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {

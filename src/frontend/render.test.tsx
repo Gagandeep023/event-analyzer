@@ -36,7 +36,7 @@ describe('EventAnalyzerDashboard', () => {
 
   it('shows every navigation section', () => {
     render(<EventAnalyzerDashboard baseUrl="/api/events" fetcher={fakeFetch()} />);
-    for (const label of ['Overview', 'Events', 'Funnels', 'Retention', 'Live']) {
+    for (const label of ['Overview', 'Events', 'Funnels', 'Cohorts', 'Retention', 'Live']) {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
   });

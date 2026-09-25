@@ -30,6 +30,7 @@ export {
   buildIdentityGraph,
   groupByUser,
   byTime,
+  userSetMatcher,
   type IdentityGraph,
 } from './identity';
 

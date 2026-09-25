@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@gagandeep023/event-analyzer"><img alt="npm" src="https://img.shields.io/npm/v/@gagandeep023/event-analyzer?color=64ffda&label=npm"></a>
   <img alt="dependencies" src="https://img.shields.io/badge/runtime%20deps-0-64ffda">
-  <img alt="tests" src="https://img.shields.io/badge/tests-460-64ffda">
+  <img alt="tests" src="https://img.shields.io/badge/tests-470-64ffda">
   <img alt="types" src="https://img.shields.io/badge/types-included-64ffda">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-64ffda">
 </p>
@@ -50,7 +50,7 @@ server in exchange. This gives you the tooling and keeps the data on disk.
   ./backend    collect      express router, validation, pluggable storage
   ./core       analyse      9 analyses: funnels, retention, cohorts, sessions,
                             events, segments, breakdowns, growth, activity
-  ./frontend   render       react dashboard: 8 pages, SVG charts, no chart lib
+  ./frontend   render       react dashboard: 9 pages, SVG charts, no chart lib
 ```
 
 ### Capture

@@ -19,7 +19,7 @@ import type {
   RetentionQuery,
   RetentionResult,
 } from '../types';
-import { buildIdentityGraph, groupByUser, type IdentityGraph } from './identity';
+import { buildIdentityGraph, groupByUser, userSetMatcher, type IdentityGraph } from './identity';
 import { matchesAll, matchesStep } from './filter';
 import { ratio } from './stats';
 import { bucketLabel, bucketStart, inRange, periodLabel, periodsBetween } from './time';
@@ -41,7 +41,8 @@ export function retention(
   const allowRegex = opts.allowRegex === true;
   const tz = q.tzOffsetMin ?? 0;
 
-  const scoped = events.filter((ev) => inRange(ev.time ?? 0, q.range));
+  const inSet = userSetMatcher(graph, q.userKeys);
+  const scoped = events.filter((ev) => inRange(ev.time ?? 0, q.range) && inSet(ev));
   const byUser = groupByUser(scoped, graph);
 
   const records: UserRecord[] = [];

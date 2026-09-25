@@ -259,6 +259,28 @@ interface StepSpec {
 
 Every query body also accepts `tzOffsetMin`, falling back to the router's `defaultTzOffsetMin`, then to 0.
 
+Every query body also accepts **`userKeys`**, an array of resolved user keys that
+restricts the analysis to those people. This is how a cohort is reused as a
+segment: run `POST /query/cohort`, then pass its `userIds` straight back as
+`userKeys` on any other query.
+
+```jsonc
+// 1. who upgraded?
+POST /query/cohort
+{ "range": {...}, "did": [{ "step": { "event_type": "Plan Upgraded" } }] }
+// -> { "userIds": ["u:alice", "u:bob"], "size": 2, ... }
+
+// 2. what do those people read?
+POST /query/breakdown
+{ "range": {...}, "property": { "scope": "context", "key": "page_path" },
+  "userKeys": ["u:alice", "u:bob"] }
+```
+
+Absent or empty means every user. Matching happens against the **resolved**
+identity, not the raw `user_id`, so a person who was anonymous before logging in
+keeps their pre-login events. A `segment` filter cannot express this, because
+filters address properties and identity is not a property.
+
 ### Filter semantics
 
 - `exists` and `not_exists` are the only operators for which a missing property is meaningful. Every other operator returns `false` against `undefined`, so a missing property never accidentally satisfies `neq`.

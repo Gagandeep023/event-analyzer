@@ -19,6 +19,15 @@ export interface BaseQuery {
   range: TimeRange;
   /** Minutes east of UTC. Falls back to the router default, then to 0. */
   tzOffsetMin?: TzOffsetMin;
+  /**
+   * Restricts the analysis to these resolved user keys, which is how a cohort
+   * is reused as a segment: run `cohort`, feed its `userIds` back in here.
+   *
+   * Empty or absent means every user. Matched against the RESOLVED key, never
+   * the raw `user_id`, so a person who was anonymous before logging in keeps
+   * their pre-login events.
+   */
+  userKeys?: string[];
 }
 
 // ---------------------------------------------------------------------------
