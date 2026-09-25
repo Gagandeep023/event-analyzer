@@ -10,7 +10,7 @@
  * SVG, so there is no charting library to install.
  */
 
-export const FRONTEND_VERSION = '0.6.2';
+export const FRONTEND_VERSION = '0.6.3';
 
 export {
   EventAnalyzerDashboard,

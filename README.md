@@ -46,17 +46,22 @@ server in exchange. This gives you the tooling and keeps the data on disk.
 ## Four pieces, use any of them
 
 ```
-  ./sdk        capture      browser + node, batching, retry, offline queue
-  ./backend    collect      express router, validation, pluggable storage
-  ./core       analyse      9 analyses: funnels, retention, cohorts, sessions,
-                            events, segments, breakdowns, growth, activity
-  ./frontend   render       react dashboard: 9 pages, SVG charts, no chart lib
+  ./sdk       capture   browser + node, batching, retry,
+                        offline queue
+  ./backend   collect   express router, validation,
+                        pluggable storage
+  ./core      analyse   9 analyses: funnels, retention,
+                        cohorts, sessions, events, segments,
+                        breakdowns, growth, activity
+  ./frontend  render    react dashboard: 9 pages, SVG charts,
+                        no chart lib
 ```
 
 ### Capture
 
 ```ts
-import { createClient, Identify, Revenue } from '@gagandeep023/event-analyzer/sdk';
+import { createClient, Identify, Revenue }
+  from '@gagandeep023/event-analyzer/sdk';
 
 const ea = createClient({
   endpoint: '/api/events/collect',
@@ -85,7 +90,8 @@ import { createEventAnalyzerRouter, JsonlFileStore }
 app.use('/api/events', createEventAnalyzerRouter(express, {
   store: new JsonlFileStore({ dir: './data/events' }),
   apiKeys: [process.env.EA_WRITE_KEY],   // public: guards /collect
-  queryAuth: requireOwner,               // yours:  guards /query and /stream
+  // yours: guards /query and /stream
+  queryAuth: requireOwner,
 }));
 ```
 
@@ -98,9 +104,11 @@ installing this package for `core` alone never pulls express into your graph.
 array from any database, with no server involved.
 
 ```ts
-import { funnel, retention, buildIdentityGraph } from '@gagandeep023/event-analyzer/core';
+import { funnel, retention, buildIdentityGraph }
+  from '@gagandeep023/event-analyzer/core';
 
-const ids = buildIdentityGraph(events);   // build once, pass into every analysis
+// build once, pass into every analysis
+const ids = buildIdentityGraph(events);
 
 funnel(events, {
   steps: [{ event_type: 'Signed Up' }, { event_type: 'Plan Upgraded' }],
@@ -114,7 +122,8 @@ funnel(events, {
 ### Render
 
 ```tsx
-import { EventAnalyzerDashboard } from '@gagandeep023/event-analyzer/frontend';
+import { EventAnalyzerDashboard }
+  from '@gagandeep023/event-analyzer/frontend';
 import '@gagandeep023/event-analyzer/frontend/styles.css';
 
 <EventAnalyzerDashboard baseUrl="/api/events" fetcher={authedFetch} />
@@ -184,9 +193,12 @@ the caller its retry failed when the data actually arrived.
 ## Funnel modes: read this once
 
 ```
-ordered      steps in order, other events allowed between   ← the intuitive one
+ordered      steps in order, other events allowed
+             between                              ← the intuitive one
 unordered    all steps, any order
-sequential   steps in order, NO other event between them    ← stricter than it sounds
+sequential   steps in order, NO other event
+             between them                         ← stricter than
+                                                    it sounds
 ```
 
 `sequential` is **not** the plain in-order mode. `ordered` is. These names are the
@@ -233,7 +245,8 @@ Other defaults chosen on the cautious side:
 ```bash
 git clone https://github.com/Gagandeep023/event-analyzer.git
 cd event-analyzer && npm i
-npm run demo     # seeds 90 days of data, prints a curl for every endpoint
+# seeds 90 days of data, prints a curl for every endpoint
+npm run demo
 ```
 
 ---
