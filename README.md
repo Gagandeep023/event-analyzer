@@ -246,6 +246,13 @@ npm run demo     # seeds 90 days of data, prints a curl for every endpoint
 - `/export` materialises the range before streaming, so keep export windows bounded.
 - Journey paths, taxonomy validation and lookup tables are not in v0.1.
 
+## Requests and feedback
+
+[![Request a feature](https://img.shields.io/badge/request-a%20feature-64ffda)](https://github.com/Gagandeep023/event-analyzer/discussions/new?category=ideas)
+[![Report a bug](https://img.shields.io/badge/report-a%20bug-cc4444)](https://github.com/Gagandeep023/event-analyzer/issues/new?template=bug_report.yml)
+
+Ideas and questions go to Discussions, bugs to Issues.
+
 ## License
 
 MIT
