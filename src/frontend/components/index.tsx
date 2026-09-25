@@ -93,3 +93,19 @@ export function Async<T>({
   if (!state.data) return <>{empty ?? <Empty title="No data yet." />}</>;
   return <>{children(state.data)}</>;
 }
+
+
+/**
+ * Says, on the page being filtered, that it is being filtered.
+ *
+ * A cohort applied from another page is invisible state: without this the
+ * numbers simply look different, and a smaller retention curve reads as a
+ * regression rather than as a narrower question.
+ */
+export function CohortNote({ label }: { label: string }): React.ReactElement {
+  return (
+    <p className="ea-cohort-note-bar">
+      Filtered to <strong>{label}</strong>
+    </p>
+  );
+}

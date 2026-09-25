@@ -14,7 +14,7 @@
  *   }));
  */
 
-export const BACKEND_VERSION = '0.6.0';
+export const BACKEND_VERSION = '0.6.1';
 
 export { createEventAnalyzerRouter, type ExpressLike } from './router';
 export {

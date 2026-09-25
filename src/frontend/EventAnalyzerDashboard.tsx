@@ -7,8 +7,8 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import type { MetaResponse } from '../types';
-import { useMeta, type ApiContext, type Fetcher } from './hooks';
+import type { CohortResult, MetaResponse } from '../types';
+import { useMeta, useQuery, type ApiContext, type Fetcher } from './hooks';
 import { ErrorBox, Loading } from './components';
 import { Overview, type Metric } from './pages/Overview';
 import { Events } from './pages/Events';
@@ -16,7 +16,7 @@ import { Audience } from './pages/Audience';
 import { Pages } from './pages/Pages';
 import { Clicks } from './pages/Clicks';
 import { Funnels, type FunnelDef } from './pages/Funnels';
-import { Cohorts } from './pages/Cohorts';
+import { Cohorts, type CohortDef } from './pages/Cohorts';
 import { Retention } from './pages/Retention';
 import { Live } from './pages/Live';
 import { fmt } from './theme';
@@ -84,6 +84,16 @@ export function EventAnalyzerDashboard({
   const [rangeKey, setRangeKey] = useState<RangeKey>(defaultRange);
   const [metric, setMetric] = useState<Metric>('users');
 
+  /**
+   * A cohort applied from the Cohorts page to Retention and Funnels.
+   *
+   * The DEFINITION is held, not the resolved ids. Membership is re-evaluated
+   * against whatever range the target page is showing, so the filter and the
+   * analysis always answer for the same window. Freezing the ids would leave
+   * Retention filtered by who qualified over some other period.
+   */
+  const [cohort, setCohort] = useState<{ label: string; def: CohortDef } | null>(null);
+
   const api: ApiContext = useMemo(
     () => ({ baseUrl: baseUrl.replace(/\/$/, ''), fetcher: fetcher ?? fetch.bind(globalThis) }),
     [baseUrl, fetcher],
@@ -96,6 +106,26 @@ export function EventAnalyzerDashboard({
     return { from: to - days * 86_400_000, to };
   }, [days]);
   const granularity = days <= 1 ? ('hour' as const) : ('day' as const);
+
+  const cohortState = useQuery<CohortResult>(
+    api,
+    'cohort',
+    useMemo(
+      () => (cohort ? { ...cohort.def, range, tzOffsetMin: offset } : {}),
+      [cohort, range, offset],
+    ),
+    cohort !== null,
+  );
+
+  /**
+   * An empty array means "every user" to the engine, so a cohort that resolved
+   * to nobody must never be passed as a filter. It is reported instead.
+   */
+  const cohortKeys = cohort && cohortState.data?.userIds.length
+    ? cohortState.data.userIds
+    : undefined;
+  const cohortPending = cohort !== null && cohortState.data === null && !cohortState.error;
+  const cohortEmpty = cohort !== null && cohortState.data?.userIds.length === 0;
 
   const meta = useMeta(api);
   const eventTypes = useMemo(
@@ -196,16 +226,39 @@ export function EventAnalyzerDashboard({
 
         {page === 'events' ? <Events api={api} range={range} tzOffsetMin={offset} /> : null}
 
-        {page === 'funnels' ? (
-          <Funnels api={api} range={range} tzOffsetMin={offset} funnels={resolvedFunnels} />
+        {page === 'funnels' && !cohortEmpty ? (
+          <Funnels
+            api={api} range={range} tzOffsetMin={offset} funnels={resolvedFunnels}
+            userKeys={cohortKeys} cohortPending={cohortPending}
+            cohortLabel={cohort?.label ?? null}
+          />
         ) : null}
 
         {page === 'cohorts' ? (
-          <Cohorts api={api} range={range} tzOffsetMin={offset} eventTypes={eventTypes} />
+          <Cohorts
+            api={api} range={range} tzOffsetMin={offset} eventTypes={eventTypes}
+            appliedLabel={cohort?.label ?? null}
+            onApply={(label, def) => setCohort({ label, def })}
+            onClear={() => setCohort(null)}
+          />
         ) : null}
 
-        {page === 'retention' ? (
-          <Retention api={api} range={range} tzOffsetMin={offset} startEvent={eventTypes[0] ?? null} />
+        {cohortEmpty && (page === 'retention' || page === 'funnels') ? (
+          <div className="ea-section">
+            <ErrorBox message={
+              `The cohort "${cohort?.label ?? ''}" has no members in this range, so there `
+              + 'is nothing to filter to. Widen the range or clear the cohort on the '
+              + 'Cohorts page.'
+            } />
+          </div>
+        ) : null}
+
+        {page === 'retention' && !cohortEmpty ? (
+          <Retention
+            api={api} range={range} tzOffsetMin={offset} startEvent={eventTypes[0] ?? null}
+            userKeys={cohortKeys} cohortPending={cohortPending}
+            cohortLabel={cohort?.label ?? null}
+          />
         ) : null}
 
         {page === 'live' ? <Live api={api} /> : null}

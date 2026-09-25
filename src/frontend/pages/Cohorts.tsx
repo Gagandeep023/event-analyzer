@@ -60,6 +60,14 @@ const MAX_DIMENSIONS = 4;
  */
 const MIN_USERS_FOR_LIFT = 5;
 
+/**
+ * A cohort definition without its window.
+ *
+ * The range is deliberately absent: whoever applies the cohort re-evaluates it
+ * against the range they are showing, so membership and analysis always agree.
+ */
+export type CohortDef = Omit<CohortQuery, 'range' | 'tzOffsetMin'>;
+
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="ea-kpi">
@@ -137,12 +145,16 @@ function CompareBreakdown({
 }
 
 export function Cohorts({
-  api, range, tzOffsetMin, eventTypes,
+  api, range, tzOffsetMin, eventTypes, appliedLabel, onApply, onClear,
 }: {
   api: ApiContext;
   range: TimeRange;
   tzOffsetMin: number;
   eventTypes: string[];
+  /** Label of the cohort currently applied elsewhere, if any. */
+  appliedLabel?: string | null;
+  onApply?: (label: string, def: CohortDef) => void;
+  onClear?: () => void;
 }): React.ReactElement {
   const meta = useMeta(api);
 
@@ -165,20 +177,33 @@ export function Cohorts({
   // The first discovered event type is a better default than an empty page.
   const didEvent = did || eventTypes[0] || '';
 
-  const cohortQuery = useMemo<CohortQuery | null>(() => {
+  // The range-free definition is what travels to other pages.
+  const definition = useMemo<CohortDef | null>(() => {
     if (!didEvent) return null;
-    const q: CohortQuery = {
-      range,
-      tzOffsetMin,
+    const d: CohortDef = {
       did: [{
         step: { event_type: didEvent },
         ...(Number(atLeast) > 1 ? { atLeast: Number(atLeast) } : {}),
       }],
     };
-    if (didNot !== NONE) q.didNot = [{ event_type: didNot }];
-    if (Number(windowDays) > 0) q.withinMs = Number(windowDays) * DAY_MS;
-    return q;
-  }, [didEvent, didNot, atLeast, windowDays, range, tzOffsetMin]);
+    if (didNot !== NONE) d.didNot = [{ event_type: didNot }];
+    if (Number(windowDays) > 0) d.withinMs = Number(windowDays) * DAY_MS;
+    return d;
+  }, [didEvent, didNot, atLeast, windowDays]);
+
+  const cohortQuery = useMemo<CohortQuery | null>(
+    () => (definition ? { ...definition, range, tzOffsetMin } : null),
+    [definition, range, tzOffsetMin],
+  );
+
+  const label = useMemo(() => {
+    const times = Number(atLeast) > 1 ? ` ${atLeast}x` : '';
+    const not = didNot !== NONE ? ` not ${didNot}` : '';
+    const win = Number(windowDays) > 0 ? ` in ${windowDays}d` : '';
+    return `${didEvent}${times}${not}${win}`;
+  }, [didEvent, atLeast, didNot, windowDays]);
+
+  const isApplied = appliedLabel !== null && appliedLabel === label;
 
   const cohort = useQuery<CohortResult>(
     api, 'cohort', cohortQuery ?? {}, cohortQuery !== null,
@@ -267,6 +292,29 @@ export function Cohorts({
                      hint={`of ${fmt(c.totalUsersInRange)} users in range`} />
                 <Kpi label="Everyone else" value={fmt(c.totalUsersInRange - c.size)} />
               </div>
+              {onApply && c.size > 0 ? (
+                <div className="ea-cohort-apply">
+                  {isApplied ? (
+                    <>
+                      <span className="ea-cohort-applied">
+                        Applied to Retention and Funnels
+                      </span>
+                      <button type="button" className="ea-btn-outline" onClick={onClear}>
+                        Clear
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="ea-btn-primary"
+                      onClick={() => definition && onApply(label, definition)}
+                    >
+                      Apply to Retention and Funnels
+                    </button>
+                  )}
+                </div>
+              ) : null}
+
               {c.size === 0 ? (
                 <p className="ea-empty">
                   Nobody matches this definition in this range. Try a wider window,

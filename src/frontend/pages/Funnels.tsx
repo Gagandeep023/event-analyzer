@@ -2,26 +2,38 @@ import React, { useMemo, useState } from 'react';
 import type { FunnelQuery, FunnelResult, TimeRange } from '../../types';
 import { DEFAULT_CONVERSION_WINDOW_MS } from '../../types';
 import { useQuery, type ApiContext } from '../hooks';
-import { Async, Panel, Segmented } from '../components';
+import { Async, CohortNote, Panel, Segmented } from '../components';
 import { duration, fmt, pct } from '../theme';
 
 export interface FunnelDef { name: string; steps: string[]; }
 
 export function Funnels({
-  api, range, tzOffsetMin, funnels,
+  api, range, tzOffsetMin, funnels, userKeys, cohortPending, cohortLabel,
 }: {
   api: ApiContext;
   range: TimeRange;
   tzOffsetMin: number;
   funnels: FunnelDef[];
+  /**
+   * Restricts every query on this page to a cohort.
+   *
+   * `pending` means a cohort is applied but its membership has not resolved
+   * yet. The queries are held rather than run unfiltered, because showing
+   * everybody under a heading that says "filtered" is worse than showing a
+   * spinner.
+   */
+  userKeys?: string[];
+  cohortPending?: boolean;
+  cohortLabel?: string | null;
 }): React.ReactElement {
   const [selected, setSelected] = useState(0);
   const [order, setOrder] = useState<FunnelQuery['order']>('ordered');
   const def = funnels[selected];
 
   const body = useMemo<FunnelQuery | null>(() => {
-    if (!def || def.steps.length < 2) return null;
+    if (!def || def.steps.length < 2 || cohortPending) return null;
     return {
+      ...(userKeys ? { userKeys } : {}),
       steps: def.steps.map((event_type) => ({ event_type })),
       order,
       conversionWindowMs: DEFAULT_CONVERSION_WINDOW_MS,
@@ -29,7 +41,7 @@ export function Funnels({
       range,
       tzOffsetMin,
     };
-  }, [def, order, range, tzOffsetMin]);
+  }, [def, order, range, tzOffsetMin, userKeys, cohortPending]);
 
   const state = useQuery<FunnelResult>(api, 'funnel', body ?? {}, body !== null);
 
@@ -44,7 +56,9 @@ export function Funnels({
   }
 
   return (
-    <div className="ea-split">
+    <>
+      {cohortLabel ? <CohortNote label={cohortLabel} /> : null}
+      <div className="ea-split">
       <div className="ea-list">
         {funnels.map((f, i) => (
           <button key={f.name} type="button" aria-pressed={i === selected} onClick={() => setSelected(i)}>
@@ -120,6 +134,7 @@ export function Funnels({
           }}
         </Async>
       </Panel>
-    </div>
+      </div>
+    </>
   );
 }

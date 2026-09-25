@@ -3,7 +3,7 @@ import type {
   GrowthResult, RetentionMeasure, RetentionQuery, RetentionResult, TimeRange,
 } from '../../types';
 import { useQuery, type ApiContext } from '../hooks';
-import { Async, Panel, Segmented } from '../components';
+import { Async, CohortNote, Panel, Segmented } from '../components';
 import { Heatmap, StackedBars, TimeSeries } from '../charts';
 import { fmt, pct } from '../theme';
 
@@ -20,19 +20,31 @@ const EXPLAIN: Record<RetentionMeasure, string> = {
 };
 
 export function Retention({
-  api, range, tzOffsetMin, startEvent,
+  api, range, tzOffsetMin, startEvent, userKeys, cohortPending, cohortLabel,
 }: {
   api: ApiContext;
   range: TimeRange;
   tzOffsetMin: number;
   startEvent: string | null;
+  /**
+   * Restricts every query on this page to a cohort.
+   *
+   * `pending` means a cohort is applied but its membership has not resolved
+   * yet. The queries are held rather than run unfiltered, because showing
+   * everybody under a heading that says "filtered" is worse than showing a
+   * spinner.
+   */
+  userKeys?: string[];
+  cohortPending?: boolean;
+  cohortLabel?: string | null;
 }): React.ReactElement {
   const [measure, setMeasure] = useState<RetentionMeasure>('unbounded');
   const [interval, setInterval] = useState<'day' | 'week'>('week');
 
   const body = useMemo<RetentionQuery | null>(() => {
-    if (!startEvent) return null;
+    if (!startEvent || cohortPending) return null;
     return {
+      ...(userKeys ? { userKeys } : {}),
       startAction: { event_type: startEvent },
       returnAction: { event_type: '*' },
       measure,
@@ -44,12 +56,19 @@ export function Retention({
       range,
       tzOffsetMin,
     };
-  }, [startEvent, measure, interval, range, tzOffsetMin]);
+  }, [startEvent, measure, interval, range, tzOffsetMin, userKeys, cohortPending]);
 
   const state = useQuery<RetentionResult>(api, 'retention', body ?? {}, body !== null);
 
-  const growthState = useQuery<GrowthResult>(api, 'growth', useMemo(
-    () => ({ interval, range, tzOffsetMin }), [interval, range, tzOffsetMin]));
+  const growthState = useQuery<GrowthResult>(
+    api,
+    'growth',
+    useMemo(
+      () => ({ interval, range, tzOffsetMin, ...(userKeys ? { userKeys } : {}) }),
+      [interval, range, tzOffsetMin, userKeys],
+    ),
+    !cohortPending,
+  );
 
   if (!startEvent) {
     return <Panel title="Retention"><p className="ea-empty">No events yet.</p></Panel>;
@@ -57,6 +76,7 @@ export function Retention({
 
   return (
     <>
+      {cohortLabel ? <CohortNote label={cohortLabel} /> : null}
       <div className="ea-section">
         <Panel
           title={`${interval === 'week' ? 'Weekly' : 'Daily'} cohorts · returned after ${startEvent}`}
